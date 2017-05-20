@@ -45,8 +45,10 @@ enum FileType {
 extern std::string LogFileName(const std::string& dbname, uint64_t number);
 
 static const std::string ARCHIVAL_DIR = "archive";
+static const std::string DATA_ARCHIVAL_DIR = "data_archive";
 
 extern std::string ArchivalDirectory(const std::string& dbname);
+extern std::string DataArchivalDirectory(const std::string& dbname);
 
 //  Return the name of the archived log file with the specified number
 //  in the db named by "dbname". The result will be prefixed with "dbname".

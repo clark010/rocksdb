@@ -284,6 +284,8 @@ DBImpl::DBImpl(const DBOptions& options, const std::string& dbname)
   column_family_memtables_.reset(new ColumnFamilyMemTablesImpl(
       versions_->GetColumnFamilySet(), &flush_scheduler_));
 
+  data_archival_file_cleaner_.reset(new DataArchivalFileCleaner(env_, &db_options_.db_paths, db_options_.info_log));
+
   DumpRocksDBBuildVersion(db_options_.info_log.get());
   DumpDBFileSummary(db_options_, dbname_);
   db_options_.Dump(db_options_.info_log.get());
@@ -453,6 +455,11 @@ const Status DBImpl::CreateArchivalDirectory() {
     return env_->CreateDirIfMissing(archivalPath);
   }
   return Status::OK();
+}
+
+const Status DBImpl::CreateDataArchivalDirectory(const std::string& path) {
+  std::string archivalPath = DataArchivalDirectory(path);
+  return env_->CreateDirIfMissing(archivalPath);
 }
 
 void DBImpl::PrintStatistics() {
@@ -4824,6 +4831,20 @@ Status DB::Open(const DBOptions& db_options, const std::string& dbname,
     delete impl;
     return s;
   }
+
+  for (auto db_path : impl->db_options_.db_paths) {
+    s = impl->CreateDataArchivalDirectory(db_path.path);
+    if (!s.ok()) {
+      break;
+    }
+  }
+
+  if (!s.ok()) {
+    delete impl;
+    return s;
+  }
+
+  //TODO: start archive file cleaner
 
   s = impl->CreateArchivalDirectory();
   if (!s.ok()) {

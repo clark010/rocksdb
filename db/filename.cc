@@ -76,6 +76,11 @@ std::string LogFileName(const std::string& name, uint64_t number) {
 std::string ArchivalDirectory(const std::string& dir) {
   return dir + "/" + ARCHIVAL_DIR;
 }
+
+std::string DataArchivalDirectory(const std::string& dir) {
+  return dir + "/" + DATA_ARCHIVAL_DIR;
+}
+
 std::string ArchivedLogFileName(const std::string& name, uint64_t number) {
   assert(number > 0);
   return MakeFileName(name + "/" + ARCHIVAL_DIR, number, "log");
