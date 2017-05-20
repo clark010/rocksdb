@@ -43,6 +43,7 @@
 #include "util/instrumented_mutex.h"
 #include "util/stop_watch.h"
 #include "util/thread_local.h"
+#include "util/data_archival_file_cleaner.h"
 
 namespace rocksdb {
 
@@ -393,6 +394,8 @@ class DBImpl : public DB {
   const DBOptions db_options_;
   Statistics* stats_;
 
+  std::shared_ptr<DataArchivalFileCleaner> data_archival_file_cleaner_;
+
   InternalIterator* NewInternalIterator(const ReadOptions&,
                                         ColumnFamilyData* cfd,
                                         SuperVersion* super_version,
@@ -442,6 +445,8 @@ class DBImpl : public DB {
   void MaybeIgnoreError(Status* s) const;
 
   const Status CreateArchivalDirectory();
+  const Status CreateDataArchivalDirectory(const std::string& path);
+  const Status CreateCheckpointDirectory(const std::string& path);
 
   // Delete any unneeded files and stale in-memory entries.
   void DeleteObsoleteFiles();

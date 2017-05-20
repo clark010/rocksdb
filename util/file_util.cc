@@ -70,7 +70,13 @@ Status CopyFile(Env* env, const std::string& source,
 Status DeleteOrMoveToTrash(const DBOptions* db_options,
                            const std::string& fname) {
   if (db_options->delete_scheduler == nullptr) {
-    return db_options->env->DeleteFile(fname);
+    //return db_options->env->DeleteFile(fname);
+    size_t idx = fname.rfind("/");
+    if (idx == std::string::npos || idx == fname.size() - 1) {
+      return Status::InvalidArgument("file_path is corrupted");
+    }
+
+    return db_options->env->RenameFile(fname, fname.substr(0, idx) + "/data_archive/" + fname.substr(idx));
   } else {
     return db_options->delete_scheduler->DeleteFile(fname);
   }

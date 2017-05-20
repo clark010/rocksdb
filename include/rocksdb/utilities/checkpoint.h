@@ -14,6 +14,7 @@
 namespace rocksdb {
 
 class DB;
+class Options;
 
 class Checkpoint {
  public:
@@ -28,6 +29,10 @@ class Checkpoint {
   // The directory should not already exist and will be created by this API.
   // The directory will be an absolute path
   virtual Status CreateCheckpoint(const std::string& checkpoint_dir);
+
+  virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name);
+
+  virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_name);
 
   virtual ~Checkpoint() {}
 };

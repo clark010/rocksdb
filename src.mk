@@ -91,6 +91,7 @@ LIB_SOURCES =                                                   \
   util/crc32c.cc                                                \
   util/db_info_dumper.cc                                        \
   util/delete_scheduler_impl.cc                                 \
+  util/data_archival_file_cleaner.cc                            \
   util/dynamic_bloom.cc                                         \
   util/env.cc                                                   \
   util/env_hdfs.cc                                              \
@@ -106,6 +107,7 @@ LIB_SOURCES =                                                   \
   utilities/backupable/backupable_db.cc                         \
   utilities/convenience/info_log_finder.cc                      \
   utilities/checkpoint/checkpoint.cc                            \
+  utilities/checkpoint/checkpoint_file_cache.cc                            \
   utilities/compaction_filters/remove_emptyvalue_compactionfilter.cc    \
   utilities/document/document_db.cc                             \
   utilities/document/json_document_builder.cc                   \

@@ -42,7 +42,6 @@ void Java_org_rocksdb_Checkpoint_disposeInternal(JNIEnv* env, jobject jobj,
 
 /*
  * Class:     org_rocksdb_Checkpoint
- * Method:    createCheckpoint
  * Signature: (JLjava/lang/String;)V
  */
 void Java_org_rocksdb_Checkpoint_createCheckpoint(
@@ -59,3 +58,43 @@ void Java_org_rocksdb_Checkpoint_createCheckpoint(
       rocksdb::RocksDBExceptionJni::ThrowNew(env, s);
   }
 }
+
+/*
+ * Class:     org_rocksdb_Checkpoint
+ * Method:    createInternalCheckpoint
+ * Signature: (JLjava/lang/String;)V
+ */
+void Java_org_rocksdb_Checkpoint_createInternalCheckpoint(
+  JNIEnv *env, jobject jobj, jlong jcheckpoint_handle,
+  jstring jcheckpoint_name) {
+  auto checkpoint = reinterpret_cast<rocksdb::Checkpoint*>(
+    jcheckpoint_handle);
+  const char* checkpoint_name = env->GetStringUTFChars(
+    jcheckpoint_name, 0);
+  rocksdb::Status s = checkpoint->CreateInternalCheckpoint(checkpoint_name);
+  env->ReleaseStringUTFChars(jcheckpoint_name, checkpoint_name);
+  if (!s.ok()) {
+    rocksdb::RocksDBExceptionJni::ThrowNew(env, s);
+  }
+}
+
+/*
+ * Class:     org_rocksdb_Checkpoint
+ * Method:    restoreInternalCheckpoint
+ * Signature: (JLjava/lang/String;)V
+ */
+void Java_org_rocksdb_Checkpoint_restoreInternalCheckpoint(
+  JNIEnv *env, jobject jobj, jlong jcheckpoint_handle,
+  jstring jcheckpoint_name) {
+  auto checkpoint = reinterpret_cast<rocksdb::Checkpoint*>(
+    jcheckpoint_handle);
+  const char* checkpoint_name = env->GetStringUTFChars(
+    jcheckpoint_name, 0);
+  rocksdb::Status s = checkpoint->RestoreInternalCheckpoint(checkpoint_name);
+  env->ReleaseStringUTFChars(jcheckpoint_name, checkpoint_name);
+  if (!s.ok()) {
+    rocksdb::RocksDBExceptionJni::ThrowNew(env, s);
+  }
+}
+
+

@@ -76,6 +76,15 @@ std::string LogFileName(const std::string& name, uint64_t number) {
 std::string ArchivalDirectory(const std::string& dir) {
   return dir + "/" + ARCHIVAL_DIR;
 }
+
+std::string DataArchivalDirectory(const std::string& dir) {
+  return dir + "/" + DATA_ARCHIVAL_DIR;
+}
+
+std::string CheckpointDirectory(const std::string& dir) {
+  return dir + "/" + CHECKPOINT_DIR;
+}
+
 std::string ArchivedLogFileName(const std::string& name, uint64_t number) {
   assert(number > 0);
   return MakeFileName(name + "/" + ARCHIVAL_DIR, number, "log");
@@ -139,6 +148,10 @@ std::string DescriptorFileName(const std::string& dbname, uint64_t number) {
 
 std::string CurrentFileName(const std::string& dbname) {
   return dbname + "/CURRENT";
+}
+
+std::string CheckpointCurrentFileName(const std::string& checkpoint_dir) {
+  return checkpoint_dir + "/CURRENT";
 }
 
 std::string LockFileName(const std::string& dbname) {
