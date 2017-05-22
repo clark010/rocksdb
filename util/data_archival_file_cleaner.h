@@ -3,7 +3,10 @@
 //  LICENSE file in the root directory of this source tree. An additional grant
 //  of patent rights can be found in the PATENTS file in the same directory.
 
-#pragma once
+//#pragma once
+#ifndef DATA_ARCHIVAL_FILE_CLEANER_H
+#define DATA_ARCHIVAL_FILE_CLEANER_H
+#endif /*DATA_ARCHIVAL_FILE_CLEANER_H*/
 
 #include <string>
 #include <thread>
@@ -22,7 +25,7 @@ class Logger;
 
 class DataArchivalFileCleaner {
     public:
-        DataArchivalFileCleaner(Env *env, std::vector<DbPath>* dbPath , std::shared_ptr<Logger> info_log);
+        DataArchivalFileCleaner(Env *env, const std::vector<DbPath>* dbPath , std::shared_ptr<Logger> info_log);
 
         ~DataArchivalFileCleaner();
 
@@ -39,7 +42,7 @@ class DataArchivalFileCleaner {
 
         bool closing_;
 
-        std::vector<DbPath>* db_paths_;
+        const std::vector<DbPath>* db_paths_;
 
         // Queue of files  which referenced by compaction
         //std::queue<std::string> ref_files;

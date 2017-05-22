@@ -3,14 +3,14 @@
 //  LICENSE file in the root directory of this source tree. An additional grant
 //  of patent rights can be found in the PATENTS file in the same directory.
 
-#include <vector>
-#include <iostream>
 #include "util/data_archival_file_cleaner.h"
+
+#include <iostream>
 
 namespace rocksdb {
 
 
-DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, std::vector<DbPath>* db_paths,
+DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbPath>* db_paths,
                                                  std::shared_ptr<Logger> info_log)
     :env_(env),
      cv_(&mu_),
@@ -99,7 +99,7 @@ void DataArchivalFileCleaner::RequestDeletableFiles() {
     }
 }
 
-    DataArchivalFileCleaner::~DataArchivalFileCleaner() {
+DataArchivalFileCleaner::~DataArchivalFileCleaner() {
     {
         MutexLock l(&mu_);
         closing_ = true;
