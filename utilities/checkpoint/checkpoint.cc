@@ -69,7 +69,6 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
   std::vector<std::string> live_files;
   uint64_t manifest_file_size = 0;
   uint64_t sequence_number = db_->GetLatestSequenceNumber();
-  bool same_fs = true;
   VectorLogPtr live_wal_files;
 
   std::string checkpoint_dir = db_->GetDBOptions().db_paths.front().path + "/checkpoint/" + checkpoint_name;
@@ -124,7 +123,7 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
 
     if ((type == kTableFile)) {
       //TODO: write the fname into data.manifest
-      Log(db_->GetDBOptions().info_log, "checkpoint file", db_->GetName() + src_fname.c_str());
+      Log(db_->GetDBOptions().info_log, "checkpoint file %s", db_->GetName() + src_fname.c_str());
     } else {
       //TODO: copy the manifest or current files to the checkpoint dir
       Log(db_->GetOptions().info_log, "Copying %s", src_fname.c_str());
