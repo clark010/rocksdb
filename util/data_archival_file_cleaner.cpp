@@ -4,6 +4,7 @@
 //  of patent rights can be found in the PATENTS file in the same directory.
 
 #include <vector>
+#include <iostream>
 #include "util/data_archival_file_cleaner.h"
 
 namespace rocksdb {
@@ -23,7 +24,8 @@ DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, std::vector<DbPath>* 
 void DataArchivalFileCleaner::BackgroundCleaner() {
     TEST_SYNC_POINT("DataArchivalFileCleaner::BackgroundCleaner");
 
-    Header(info_log_, "start %s thread", "DataArchivalFileCleaner");
+    //Header(info_log_, "start %s thread", "DataArchivalFileCleaner");
+    std::cout << "Start DataArchivalFileCleaner thread" << std::endl;
 
     //std::vector<std::string> deletable_files;
 
@@ -51,24 +53,36 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
 
             Status s = env_->DeleteFile(deletable_file);
             if (s.ok()) {
-                Header(info_log_, "[DataArchivalFileCleaner]Delete file:%s", deletable_file);
+                //Header(info_log_, "[DataArchivalFileCleaner]Delete file:%s", deletable_file);
+                std::cout << "[DataArchivalFileCleaner]Delete file:"
+                     << deletable_file
+                     << std::endl;
             } else {
-                Header(info_log_, "[DataArchivalFileCleaner]Failed delete file:%", deletable_file);
+                std::cout << "[DataArchivalFileCleaner]Failed Delete file:"
+                          << deletable_file
+                          << std::endl;
+                //Header(info_log_, "[DataArchivalFileCleaner]Failed delete file:%", deletable_file);
             }
 
             mu_.Lock();
         }
 
-        Header(info_log_, "cleaner start sleep 2s");
+        //Header(info_log_, "cleaner start sleep 2s");
+        std::cout << "Cleaner start sleep 2s" << std::endl;
+
         cv_.TimedWait(env_->NowMicros() + kMicrosInSecond * 2);
-        Header(info_log_, "cleaner end sleep");
+
+        //Header(info_log_, "cleaner end sleep");
+        std::cout << "Cleaner quit sleep" << std::endl;
     }
 }
 
 //TODO: request ArchivalFileCache to get files to delete
 void DataArchivalFileCleaner::RequestDeletableFiles() {
-    Header(info_log_, "request deletable files");
-    //std::vector<std::string> archival_files;
+    //Header(info_log_, "request deletable files");
+    std::cout << "Request deletable files" << std::endl;
+
+        //std::vector<std::string> archival_files;
 
     for (auto p : *db_paths_) {
         std::vector<std::string> t_files;
@@ -77,7 +91,10 @@ void DataArchivalFileCleaner::RequestDeletableFiles() {
         //filter undeletable file
         for (auto file : t_files) {
             deletable_files_.push(file);
-            Header(info_log_, "add deletable file:%s", file);
+            //Header(info_log_, "add deletable file:%s", file);
+            std::cout << "Add deletable file:"
+                      << file
+                      << std::endl;
         }
     }
 }
