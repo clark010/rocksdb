@@ -17,12 +17,10 @@
 
 namespace rocksdb {
 
-    class DataArchivalFileCleaner {
+class Env;
+class Logger;
 
-        class Env;
-
-        class Logger;
-
+class DataArchivalFileCleaner {
     public:
         DataArchivalFileCleaner(Env *env, std::vector<DbPath>* dbPath , std::shared_ptr<Logger> info_log);
 
@@ -54,5 +52,5 @@ namespace rocksdb {
         std::shared_ptr<Logger> info_log_;
 
         static const uint64_t kMicrosInSecond = 1000 * 1000LL;
-    };
+};
 }

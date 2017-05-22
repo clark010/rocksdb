@@ -46,7 +46,7 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
         }
 
         while (!deletable_files_.empty() && !closing_) {
-            std::string deletable_file = deletable_files_.front();
+            const std::string deletable_file = deletable_files_.front();
             deletable_files_.pop();
 
             mu_.Unlock();
