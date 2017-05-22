@@ -22,10 +22,10 @@ DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbP
 };
 
 void DataArchivalFileCleaner::BackgroundCleaner() {
-    TEST_SYNC_POINT("DataArchivalFileCleaner::BackgroundCleaner");
+    TEST_SYNC_POINT("[DataArchivalFileCleaner]DataArchivalFileCleaner::BackgroundCleaner");
 
     //Header(info_log_, "start %s thread", "DataArchivalFileCleaner");
-    std::cout << "Start DataArchivalFileCleaner thread" << std::endl;
+    std::cout << "[DataArchivalFileCleaner]Start DataArchivalFileCleaner thread" << std::endl;
 
     //std::vector<std::string> deletable_files;
 
@@ -42,6 +42,7 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
         */
 
         if (closing_) {
+            std::cout << "[DataArchivalFileCleaner]:Cleaner is closing, return" << std::endl;
             return;
         }
 
@@ -58,8 +59,8 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
                      << deletable_file
                      << std::endl;
             } else {
-                std::cout << "[DataArchivalFileCleaner]Failed Delete file:"
-                          << deletable_file
+                std::cout << "[DataArchivalFileCleaner]Failed Delete file:" << deletable_file
+                          << ", error:" << s.ToString()
                           << std::endl;
                 //Header(info_log_, "[DataArchivalFileCleaner]Failed delete file:%", deletable_file);
             }
@@ -80,21 +81,27 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
 //TODO: request ArchivalFileCache to get files to delete
 void DataArchivalFileCleaner::RequestDeletableFiles() {
     //Header(info_log_, "request deletable files");
-    std::cout << "Request deletable files" << std::endl;
+    std::cout << "[DataArchivalFileCleaner]Request deletable files" << std::endl;
 
         //std::vector<std::string> archival_files;
 
     for (auto p : *db_paths_) {
         std::vector<std::string> t_files;
-        env_->GetChildren(p.path, &t_files);
+        std::string arc_dir = DataArchivalDirectory(p.path);
+        env_->GetChildren(arc_dir, &t_files);
 
+        uint64_t number;
+        FileType type;
+        Slice slice;
         //filter undeletable file
         for (auto file : t_files) {
-            deletable_files_.push(file);
-            //Header(info_log_, "add deletable file:%s", file);
-            std::cout << "Add deletable file:"
-                      << file
-                      << std::endl;
+            if (ParseFileName(file, &number, slice, &type)) {
+                deletable_files_.push(arc_dir + "/" + file);
+                //Header(info_log_, "add deletable file:%s", file);
+                std::cout << "[DataArchivalFileCleaner]Add deletable file:"
+                          << file
+                          << std::endl;
+            }
         }
     }
 }

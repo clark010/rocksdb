@@ -15,6 +15,8 @@
 #include "rocksdb/options.h"
 #include "sync_point.h"
 #include "mutexlock.h"
+#include "db/filename.h"
+
 
 namespace rocksdb {
 
