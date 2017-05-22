@@ -18,7 +18,7 @@ DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, std::vector<DbPath>* 
      info_log_(info_log) {
 
     db_paths_ = db_paths;
-    bg_thread_.reset(new std::thread(&DataArchivalFileCleaner::BackgroundCleaner));
+    bg_thread_.reset(new std::thread(&DataArchivalFileCleaner::BackgroundCleaner, this));
 };
 
 void DataArchivalFileCleaner::BackgroundCleaner() {
