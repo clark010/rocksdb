@@ -43,7 +43,7 @@
 #include "util/instrumented_mutex.h"
 #include "util/stop_watch.h"
 #include "util/thread_local.h"
-#include "util/data_archival_file_cleaner.cpp"
+#include "util/data_archival_file_cleaner.h"
 
 namespace rocksdb {
 

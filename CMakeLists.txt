@@ -32,8 +32,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty.inc)
 
 execute_process(COMMAND $ENV{COMSPEC} " /C date /T" OUTPUT_VARIABLE DATE)
 execute_process(COMMAND $ENV{COMSPEC} " /C time /T" OUTPUT_VARIABLE TIME)
-string(REGEX REPLACE "(..)/(..)/..(..).*" "\\1/\\2/\\3" DATE ${DATE})
-string(REGEX REPLACE "(..):(.....).*" " \\1:\\2" TIME ${TIME})
+string(REGEX REPLACE "(..)/(..)/..(..).*" "\\1/\\2/\\3" DATE "${DATE}")
+string(REGEX REPLACE "(..):(.....).*" " \\1:\\2" TIME "${TIME}")
 string(CONCAT GIT_DATE_TIME ${DATE} ${TIME})
 
 find_package(Git)
@@ -44,7 +44,7 @@ else()
     set(GIT_SHA 0)
 endif()
 
-string(REGEX REPLACE "[^0-9a-f]+" "" GIT_SHA ${GIT_SHA})
+string(REGEX REPLACE "[^0-9a-f]+" "" GIT_SHA "${GIT_SHA}")
 
 set(BUILD_VERSION_CC ${CMAKE_CURRENT_SOURCE_DIR}/util/build_version.cc)
 
@@ -192,6 +192,7 @@ set(SOURCES
         util/crc32c.cc
         util/db_info_dumper.cc
         util/delete_scheduler_impl.cc
+        util/data_archival_file_cleaner.cc
         util/dynamic_bloom.cc
         util/env.cc
         util/env_hdfs.cc
@@ -270,7 +271,7 @@ set(SOURCES
 set(TESTUTIL_SOURCE
     db/db_test_util.cc
     util/thread_status_updater_debug.cc
-)
+        util/data_archival_file_cleaner.cc util/data_archival_file_cleaner.h)
 
 add_library(rocksdblib${ARTIFACT_SUFFIX} ${SOURCES})
 set_target_properties(rocksdblib${ARTIFACT_SUFFIX} PROPERTIES COMPILE_FLAGS "/Fd${CMAKE_CFG_INTDIR}/rocksdblib${ARTIFACT_SUFFIX}.pdb")

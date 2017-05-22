@@ -3,10 +3,7 @@
 //  LICENSE file in the root directory of this source tree. An additional grant
 //  of patent rights can be found in the PATENTS file in the same directory.
 
-//#pragma once
-#ifndef DATA_ARCHIVAL_FILE_CLEANER_H
-#define DATA_ARCHIVAL_FILE_CLEANER_H
-#endif /*DATA_ARCHIVAL_FILE_CLEANER_H*/
+#pragma once
 
 #include <string>
 #include <thread>
@@ -14,7 +11,8 @@
 
 #include "port/port.h"
 
-#include <include/rocksdb/env.h>
+#include "rocksdb/env.h"
+#include "rocksdb/options.h"
 #include "sync_point.h"
 #include "mutexlock.h"
 
