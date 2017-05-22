@@ -123,7 +123,7 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
 
     if ((type == kTableFile)) {
       //TODO: write the fname into data.manifest
-      Log(db_->GetDBOptions().info_log, "checkpoint file %s", db_->GetName() + src_fname.c_str());
+      Log(db_->GetDBOptions().info_log, "checkpoint file %s", (db_->GetName() + src_fname).c_str());
     } else {
       //TODO: copy the manifest or current files to the checkpoint dir
       Log(db_->GetOptions().info_log, "Copying %s", src_fname.c_str());
