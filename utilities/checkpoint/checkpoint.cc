@@ -57,9 +57,12 @@ Status Checkpoint::CreateCheckpoint(const std::string& checkpoint_dir) {
   return Status::NotSupported("");
 }
 
+Status Checkpoint::CreateInternalCheckpoint(const std::string &checkpoint_name) {
+  return Status::NotSupported("");
+}
+
 //TODO: Only one db path is
 Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_name) {
-
   // TODO: only support one db path
   if (db_->GetDBOptions().db_paths.size() > 1) {
     return Status::NotSupported("More than one DB paths are not supported in CreateInternalCheckpoint");

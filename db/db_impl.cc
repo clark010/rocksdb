@@ -462,6 +462,11 @@ const Status DBImpl::CreateDataArchivalDirectory(const std::string& path) {
   return env_->CreateDirIfMissing(archivalPath);
 }
 
+const Status DBImpl::CreateCheckpointDirectory(const std::string& path) {
+    std::string checkpointPath = CheckpointDirectory(path);
+    return env_->CreateDirIfMissing(checkpointPath);
+}
+
 void DBImpl::PrintStatistics() {
   auto dbstats = db_options_.statistics.get();
   if (dbstats) {
@@ -4836,6 +4841,18 @@ Status DB::Open(const DBOptions& db_options, const std::string& dbname,
     s = impl->CreateDataArchivalDirectory(db_path.path);
     if (!s.ok()) {
       break;
+    }
+  }
+
+  if (!s.ok()) {
+    delete impl;
+    return s;
+  }
+
+  for (auto db_path : impl->db_options_.db_paths) {
+    s = impl->CreateCheckpointDirectory(db_path.path);
+    if (!s.ok()) {
+        break;
     }
   }
 

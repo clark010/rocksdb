@@ -8,7 +8,7 @@
 #include "rocksdb/db.h"
 #include "rocksdb/slice.h"
 #include "rocksdb/options.h"
-#include "utilities/checkpoint.h"
+#include "rocksdb/utilities/checkpoint.h"
 
 using namespace rocksdb;
 
@@ -51,7 +51,7 @@ int main() {
     assert(value == "value");
 
     Checkpoint* checkpoint;
-    Checkpoint::Create(db, checkpoint);
+    Checkpoint::Create(db, &checkpoint);
     checkpoint->CreateInternalCheckpoint("chk1");
 
     delete db;

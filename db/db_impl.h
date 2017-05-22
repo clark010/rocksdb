@@ -446,6 +446,7 @@ class DBImpl : public DB {
 
   const Status CreateArchivalDirectory();
   const Status CreateDataArchivalDirectory(const std::string& path);
+  const Status CreateCheckpointDirectory(const std::string& path);
 
   // Delete any unneeded files and stale in-memory entries.
   void DeleteObsoleteFiles();
