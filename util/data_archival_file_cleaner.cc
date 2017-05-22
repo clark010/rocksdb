@@ -24,7 +24,7 @@ DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbP
 void DataArchivalFileCleaner::BackgroundCleaner() {
     TEST_SYNC_POINT("[DataArchivalFileCleaner]DataArchivalFileCleaner::BackgroundCleaner");
 
-    //Header(info_log_, "start %s thread", "DataArchivalFileCleaner");
+    Header(info_log_, "start %s thread", "DataArchivalFileCleaner");
     std::cout << "[DataArchivalFileCleaner]Start DataArchivalFileCleaner thread" << std::endl;
 
     //std::vector<std::string> deletable_files;
@@ -42,7 +42,7 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
         */
 
         if (closing_) {
-            std::cout << "[DataArchivalFileCleaner]:Cleaner is closing, return" << std::endl;
+            //std::cout << "[DataArchivalFileCleaner]:Cleaner is closing, return" << std::endl;
             return;
         }
 
@@ -54,36 +54,31 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
 
             Status s = env_->DeleteFile(deletable_file);
             if (s.ok()) {
-                //Header(info_log_, "[DataArchivalFileCleaner]Delete file:%s", deletable_file);
-                std::cout << "[DataArchivalFileCleaner]Delete file:"
-                     << deletable_file
-                     << std::endl;
+                Header(info_log_, "[DataArchivalFileCleaner]Delete file:%s", deletable_file.c_str());
+                std::cout << "[DataArchivalFileCleaner]Delete file:" << deletable_file << std::endl;
             } else {
                 std::cout << "[DataArchivalFileCleaner]Failed Delete file:" << deletable_file
                           << ", error:" << s.ToString()
                           << std::endl;
-                //Header(info_log_, "[DataArchivalFileCleaner]Failed delete file:%", deletable_file);
+                Header(info_log_, "[DataArchivalFileCleaner]Failed delete file:%, error info: %s",
+                       deletable_file.c_str(), s.ToString().c_str());
             }
 
             mu_.Lock();
         }
 
-        //Header(info_log_, "cleaner start sleep 2s");
         std::cout << "Cleaner start sleep 2s" << std::endl;
 
         cv_.TimedWait(env_->NowMicros() + kMicrosInSecond * 2);
 
-        //Header(info_log_, "cleaner end sleep");
         std::cout << "Cleaner quit sleep" << std::endl;
     }
 }
 
 //TODO: request ArchivalFileCache to get files to delete
 void DataArchivalFileCleaner::RequestDeletableFiles() {
-    //Header(info_log_, "request deletable files");
+    Header(info_log_, "[DataArchivalFileCleaner]Request deletable files");
     std::cout << "[DataArchivalFileCleaner]Request deletable files" << std::endl;
-
-        //std::vector<std::string> archival_files;
 
     for (auto p : *db_paths_) {
         std::vector<std::string> t_files;
@@ -97,7 +92,7 @@ void DataArchivalFileCleaner::RequestDeletableFiles() {
         for (auto file : t_files) {
             if (ParseFileName(file, &number, slice, &type)) {
                 deletable_files_.push(arc_dir + "/" + file);
-                //Header(info_log_, "add deletable file:%s", file);
+                Header(info_log_, "[DataArchivalFileCleaner]Add deletable file:%s", file.c_str());
                 std::cout << "[DataArchivalFileCleaner]Add deletable file:"
                           << file
                           << std::endl;

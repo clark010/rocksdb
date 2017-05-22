@@ -29,6 +29,8 @@ class Checkpoint {
   // The directory will be an absolute path
   virtual Status CreateCheckpoint(const std::string& checkpoint_dir);
 
+  virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name);
+
   virtual ~Checkpoint() {}
 };
 
