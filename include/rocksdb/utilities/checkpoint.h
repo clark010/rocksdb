@@ -31,6 +31,8 @@ class Checkpoint {
 
   virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name);
 
+  virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_name);
+
   virtual ~Checkpoint() {}
 };
 

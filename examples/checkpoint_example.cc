@@ -54,6 +54,9 @@ int main() {
     Checkpoint::Create(db, &checkpoint);
     checkpoint->CreateInternalCheckpoint("chk1");
 
+    //options.env->DeleteFile("/tmp/rocksdb_checkpoint_chk1");
+    //checkpoint->CreateCheckpoint("/tmp/rocksdb_checkpoint_chk1");
+
     delete db;
 
     return 0;

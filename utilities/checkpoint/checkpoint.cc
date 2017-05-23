@@ -43,6 +43,7 @@ class CheckpointImpl : public Checkpoint {
   using Checkpoint::CreateCheckpoint;
   virtual Status CreateCheckpoint(const std::string& checkpoint_dir) override;
   virtual Status CreateInternalCheckpoint(const std::string& checkpoint_dir) override;
+  virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_dir) override;
 
  private:
   DB* db_;
@@ -61,12 +62,19 @@ Status Checkpoint::CreateInternalCheckpoint(const std::string &checkpoint_name) 
   return Status::NotSupported("");
 }
 
-//TODO: Only one db path is
+Status Checkpoint::RestoreInternalCheckpoint(const std::string &checkpoint_name) {
+  return Status::NotSupported("");
+}
+
+//TODO: Only one db path and one family
 Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_name) {
   // TODO: only support one db path
   if (db_->GetDBOptions().db_paths.size() > 1) {
     return Status::NotSupported("More than one DB paths are not supported in CreateInternalCheckpoint");
   }
+
+  // TODO: check family size, if maily more than one then return;
+
 
   Status s;
   std::vector<std::string> live_files;
@@ -109,6 +117,15 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
 
   // copy/hard link live_files
   // write the live_files into data.manifest
+  unique_ptr<WritableFile> manifest_file;
+  EnvOptions soptions;
+  std::string manifest_fname = full_private_path + "/data.manifest";
+  s = db_->GetEnv()->NewWritableFile(manifest_fname, &manifest_file, soptions);
+  if (!s.ok()) {
+    //TODO: log
+    return s;
+  }
+
   for (size_t i = 0; s.ok() && i < live_files.size(); ++i) {
     uint64_t number;
     FileType type;
@@ -126,6 +143,10 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
 
     if ((type == kTableFile)) {
       //TODO: write the fname into data.manifest
+      s = manifest_file->Append(src_fname + "\n");
+      if (!s.ok()) {
+        break;
+      }
       Log(db_->GetDBOptions().info_log, "checkpoint file %s", (db_->GetName() + src_fname).c_str());
     } else {
       //TODO: copy the manifest or current files to the checkpoint dir
@@ -138,18 +159,20 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
   Log(db_->GetOptions().info_log, "Number of log files %" ROCKSDB_PRIszt,
       live_wal_files.size());
 
-  //TODO: for multi column family the implemetion is not good
-  // Link WAL files. Copy exact size of last one because it is the only one
-  // that has changes after the last flush.
-  for (size_t i = 0; s.ok() && i < wal_size; ++i) {
-    if ((live_wal_files[i]->Type() == kAliveLogFile) &&
-        (live_wal_files[i]->StartSequence() >= sequence_number)) {
+  if (s.ok()) {
+    //TODO: for multi column family the implemetion is not good
+    // Link WAL files. Copy exact size of last one because it is the only one
+    // that has changes after the last flush.
+    for (size_t i = 0; s.ok() && i < wal_size; ++i) {
+      if ((live_wal_files[i]->Type() == kAliveLogFile) &&
+          (live_wal_files[i]->StartSequence() >= sequence_number)) {
         Log(db_->GetOptions().info_log, "Copying %s",
             live_wal_files[i]->PathName().c_str());
         s = CopyFile(db_->GetEnv(),
                      db_->GetOptions().wal_dir + live_wal_files[i]->PathName(),
                      full_private_path + live_wal_files[i]->PathName(),
                      live_wal_files[i]->SizeFileBytes()); // TODO: if should use 0 that can copy everything?
+      }
     }
   }
 
@@ -354,6 +377,10 @@ Status CheckpointImpl::CreateCheckpoint(const std::string& checkpoint_dir) {
       sequence_number);
 
   return s;
+}
+
+Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_dir) {
+    //TODO: restore from a chckepoint
 }
 }  // namespace rocksdb
 
