@@ -381,7 +381,9 @@ Status CheckpointImpl::CreateCheckpoint(const std::string& checkpoint_dir) {
 
 Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_dir) {
     //TODO: restore from a chckepoint
+  return Status::NotSupported("");
 }
+
 }  // namespace rocksdb
 
 #endif  // ROCKSDB_LITE
