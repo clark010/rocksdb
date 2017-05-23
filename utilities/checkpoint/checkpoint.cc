@@ -143,7 +143,7 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
 
     if ((type == kTableFile)) {
       //TODO: write the fname into data.manifest
-      s = manifest_file->Append(src_fname + "\n");
+      s = manifest_file->Append(src_fname.substr(1) + "\n");
       if (!s.ok()) {
         break;
       }
