@@ -31,7 +31,7 @@ class DataArchivalFileCleaner {
 
         void BackgroundCleaner();
 
-        void RequestDeletableFiles();
+        void RequestDeletableFiles(std::queue<std::string>& deletable_files);
 
     private:
         Env *env_;

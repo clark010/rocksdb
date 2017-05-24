@@ -20,6 +20,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <util/string_util.h>
 #include "db/filename.h"
 #include "db/wal_manager.h"
 #include "rocksdb/db.h"
@@ -385,9 +386,9 @@ Status CheckpointImpl::CreateCheckpoint(const std::string& checkpoint_dir) {
   return s;
 }
 
-
+/*
 template<typename Out>
-void split(const std::string &s, char delim, Out result) {
+extern void split(const std::string &s, char delim, Out result) {
   std::stringstream ss;
   ss.str(s);
   std::string item;
@@ -396,12 +397,12 @@ void split(const std::string &s, char delim, Out result) {
   }
 }
 
-
-std::vector<std::string> split(const std::string &s, char delim) {
+extern std::vector<std::string> split(const std::string &s, char delim) {
   std::vector<std::string> elems;
   split(s, delim, std::back_inserter(elems));
   return elems;
 }
+*/
 
 Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_name) {
   //TODO:
@@ -426,7 +427,7 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   std::string content;
   ReadFileToString(db_->GetEnv(), checkpoint_dir, &content);
 
-  std::vector<std::string> ref_files = split(content, '\n');
+  std::vector<std::string> ref_files = StringSplit(content, '\n');
 
   // 3. restore all sst file to  data dir
   // 3.a check all sst file is exist, and find all archive sst file(exclude current data sst)

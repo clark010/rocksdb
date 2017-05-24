@@ -4,6 +4,7 @@
 //  of patent rights can be found in the PATENTS file in the same directory.
 
 #include "util/data_archival_file_cleaner.h"
+#include "string_util.h"
 
 #include <iostream>
 
@@ -33,7 +34,8 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
         MutexLock l(&mu_);
 
         // get all deletable files into queue
-        RequestDeletableFiles();
+        std::queue<std::string> deletable_files;
+        RequestDeletableFiles(deletable_files);
 
         /* TODO: when some thread put file into the queue
         while (deletable_files.empty() && !closing_) {
@@ -46,9 +48,9 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
             return;
         }
 
-        while (!deletable_files_.empty() && !closing_) {
-            const std::string deletable_file = deletable_files_.front();
-            deletable_files_.pop();
+        while (!deletable_files.empty() && !closing_) {
+            const std::string deletable_file = deletable_files.front();
+            deletable_files.pop();
 
             mu_.Unlock();
 
@@ -67,35 +69,64 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
             mu_.Lock();
         }
 
-        std::cout << "Cleaner start sleep 2s" << std::endl;
-
         cv_.TimedWait(env_->NowMicros() + kMicrosInSecond * 2);
-
-        std::cout << "Cleaner quit sleep" << std::endl;
     }
 }
 
 //TODO: request ArchivalFileCache to get files to delete
-void DataArchivalFileCleaner::RequestDeletableFiles() {
+void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& deletable_files) {
     Header(info_log_, "[DataArchivalFileCleaner]Request deletable files");
     std::cout << "[DataArchivalFileCleaner]Request deletable files" << std::endl;
 
+
     for (auto p : *db_paths_) {
-        std::vector<std::string> t_files;
+        std::vector<std::string> arc_files;
         std::string arc_dir = DataArchivalDirectory(p.path);
-        env_->GetChildren(arc_dir, &t_files);
+        Status s = env_->GetChildren(arc_dir, &arc_files);
+        if (!s.ok()) {
+            Header(info_log_, "[DataArchivalFileCleaner]list archive dir failed");
+            return;
+        }
+
+        std::vector<std::string> chk_sub_dirs;
+        std::string chk_dir = CheckpointDirectory(p.path);
+        s = env_->GetChildren(chk_dir, &chk_sub_dirs);
+        if (!s.ok()) {
+            Header(info_log_, "[DataArchivalFileCleaner]list checkpoint dir failed");
+            return;
+        }
+
+        std::vector<std::string> checkpoint_ref_files;
+        for (auto sdir : chk_sub_dirs) {
+            std::string chk_manifest = chk_dir + "/" + sdir + "/data.manifest"; //TODO: use const var for data.manifest
+            std::string content;
+            s = ReadFileToString(env_, chk_manifest, &content);
+            if (!s.ok()) {
+                Header(info_log_, "[DataArchivalFileCleaner]read checkpoint-%s manifest failed", sdir);
+                return;
+            }
+
+            std::vector<std::string> ref_files_ = StringSplit(content, '\n'); //TODO: maybe not very good
+            checkpoint_ref_files.insert(checkpoint_ref_files.end(), ref_files_.begin(), ref_files_.end());
+            ref_files_.clear();
+        }
 
         uint64_t number;
         FileType type;
         Slice slice;
-        //filter undeletable file
-        for (auto file : t_files) {
+        for (auto file : arc_files) {
             if (ParseFileName(file, &number, slice, &type)) {
-                deletable_files_.push(arc_dir + "/" + file);
-                Header(info_log_, "[DataArchivalFileCleaner]Add deletable file:%s", file.c_str());
-                std::cout << "[DataArchivalFileCleaner]Add deletable file:"
-                          << file
-                          << std::endl;
+                if (std::find(checkpoint_ref_files.begin(), checkpoint_ref_files.end(), file) == checkpoint_ref_files.end()) {
+                    deletable_files.push(arc_dir + "/" + file);
+                    Header(info_log_, "[DataArchivalFileCleaner]Add deletable file:%s", file.c_str());
+                    std::cout << "[DataArchivalFileCleaner]Add deletable file:"
+                              << file
+                              << std::endl;
+                } else {
+                    std::cout << "[DataArchivalFileCleaner]Not deletable file:"
+                              << file
+                              << std::endl;
+                }
             }
         }
     }
