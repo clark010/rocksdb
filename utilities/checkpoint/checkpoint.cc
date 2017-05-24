@@ -90,9 +90,17 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
 
   // 2. read data.manifest
   std::string content;
-  ReadFileToString(db_->GetEnv(), checkpoint_dir, &content);
+  s = ReadFileToString(db_->GetEnv(), checkpoint_dir + "/data.manifest", &content);
+  if (!s.ok()) {
+    Log(db_->GetDBOptions().info_log, "read checkpoint-%s data.manifest failed", checkpoint_name.c_str());
+    return s;
+  }
 
   std::vector<std::string> ref_files = StringSplit(content, '\n');
+  if (ref_files.size() < 2) {
+    Log(db_->GetDBOptions().info_log, "checkpoint-%s data.manifest pattern error", checkpoint_name.c_str());
+    return Status::Aborted("checkpoint-%s data.manifest pattern error", checkpoint_name.c_str());
+  }
 
   // 3. restore all sst file to  data dir
   // 3.a check all sst file is exist, and find all archive sst file(exclude current data sst)
