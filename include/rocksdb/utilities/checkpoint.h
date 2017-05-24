@@ -32,7 +32,7 @@ class Checkpoint {
 
   virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name);
 
-  static Status RestoreInternalCheckpoint(const Options& options, const std::string& checkpoint_name);
+  virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_name);
 
   virtual ~Checkpoint() {}
 };

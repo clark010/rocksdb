@@ -59,5 +59,7 @@ int main() {
 
     delete db;
 
+    checkpoint->RestoreInternalCheckpoint(db, "chk1");
+
     return 0;
 }

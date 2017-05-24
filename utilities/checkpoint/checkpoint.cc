@@ -46,6 +46,7 @@ class CheckpointImpl : public Checkpoint {
   using Checkpoint::CreateCheckpoint;
   virtual Status CreateCheckpoint(const std::string& checkpoint_dir) override;
   virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name) override;
+  virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_name) override;
 
  private:
   DB* db_;
@@ -64,28 +65,32 @@ Status Checkpoint::CreateInternalCheckpoint(const std::string& checkpoint_name) 
   return Status::NotSupported("");
 }
 
-Status Checkpoint::RestoreInternalCheckpoint(const Options& options, const std::string& checkpoint_name) {
+Status Checkpoint::RestoreInternalCheckpoint(const std::string& checkpoint_name) {
+  return Status::NotSupported("");
+}
+
+Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_name) {
   //TODO:
   //  1. HDFSEnv not support file lock
   //  2. only one db path and one column family is supported
 
-  if (options.db_paths.size() > 1) {
+  if (db_->GetDBOptions().db_paths.size() > 1) {
     return Status::NotSupported("More than one db path is not supported in internal checkpoint");
   }
 
-  DbPath db_path = options.db_paths.front();
+  DbPath db_path = db_->GetDBOptions().db_paths.front();
   std::string checkpoint_dir = CheckpointDirectory(db_path.path) + "/" + checkpoint_name;
   // 1. check the checkpoint_name instance exists under checkpoint path
-  Status s = options.env->FileExists(checkpoint_dir);
+  Status s = db_->GetEnv()->FileExists(checkpoint_dir);
   if (!s.ok()) {
-    Log(options.info_log, "Cannot find the checkpoint dir %s/%s",
+    Log(db_->GetDBOptions().info_log, "Cannot find the checkpoint dir %s/%s",
         CheckpointDirectory(db_path.path).c_str(), checkpoint_name.c_str());
     return s;
   }
 
   // 2. read data.manifest
   std::string content;
-  ReadFileToString(options.env, checkpoint_dir, &content);
+  ReadFileToString(db_->GetEnv(), checkpoint_dir, &content);
 
   std::vector<std::string> ref_files = StringSplit(content, '\n');
 
@@ -95,18 +100,18 @@ Status Checkpoint::RestoreInternalCheckpoint(const Options& options, const std::
   std::vector<std::string> files_need_move_back;
   for (auto file : ref_files) {
     if (file.rfind("MANIFEST") == 0) { //TODO: how impl start with?
-      s = CopyFile(options.env, checkpoint_dir + "/" + file, db_path.path + "/" + file, 0);
+      s = CopyFile(db_->GetEnv(), checkpoint_dir + "/" + file, db_path.path + "/" + file, 0);
       if (!s.ok()) {
-        Log(options.info_log, "Copy ref manifest:%s failed for checkpoint-%s",
+        Log(db_->GetDBOptions().info_log, "Copy ref manifest:%s failed for checkpoint-%s",
             file.c_str(), checkpoint_name.c_str());
         return s;
       }
     } else {
-      s = options.env->FileExists(archival_dir + "/" + file);
+      s = db_->GetEnv()->FileExists(archival_dir + "/" + file);
       if (!s.ok()) {
-        s = options.env->FileExists(db_path.path + "/" + file);
+        s = db_->GetEnv()->FileExists(db_path.path + "/" + file);
         if (!s.ok()) {
-          Log(options.info_log, "Cannot find ref sst-%s for checkpoint-%s",
+          Log(db_->GetDBOptions().info_log, "Cannot find ref sst-%s for checkpoint-%s",
               file.c_str(), checkpoint_name.c_str());
           return s;
         }
@@ -118,18 +123,18 @@ Status Checkpoint::RestoreInternalCheckpoint(const Options& options, const std::
 
   // 3.b move back all sst file
   for (auto file : files_need_move_back) {
-    s = options.env->RenameFile(archival_dir + "/" + file, db_path.path + "/" + file);
+    s = db_->GetEnv()->RenameFile(archival_dir + "/" + file, db_path.path + "/" + file);
     if (!s.ok()) {
-      Log(options.info_log, "Moved ref sst-%s failed for checkpoint-%s",
+      Log(db_->GetDBOptions().info_log, "Moved ref sst-%s failed for checkpoint-%s",
           file.c_str(), checkpoint_name.c_str());
       return s;
     }
   }
 
   // 4. copy CURRENT etc
-  s = CopyFile(options.env, checkpoint_dir + "/CURRENT", db_path.path + "/CURRENT", 0);
+  s = CopyFile(db_->GetEnv(), checkpoint_dir + "/CURRENT", db_path.path + "/CURRENT", 0);
   if (!s.ok()) {
-    Log(options.info_log, "Copy CURRENT failed for checkpoint-%s", checkpoint_name.c_str());
+    Log(db_->GetDBOptions().info_log, "Copy CURRENT failed for checkpoint-%s", checkpoint_name.c_str());
     return s;
   }
 
