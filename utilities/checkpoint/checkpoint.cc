@@ -18,6 +18,8 @@
 #include <inttypes.h>
 #include <algorithm>
 #include <string>
+#include <sstream>
+#include <iterator>
 #include "db/filename.h"
 #include "db/wal_manager.h"
 #include "rocksdb/db.h"
@@ -42,8 +44,8 @@ class CheckpointImpl : public Checkpoint {
   // The directory will be an absolute path
   using Checkpoint::CreateCheckpoint;
   virtual Status CreateCheckpoint(const std::string& checkpoint_dir) override;
-  virtual Status CreateInternalCheckpoint(const std::string& checkpoint_dir) override;
-  virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_dir) override;
+  virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name) override;
+  virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_name) override;
 
  private:
   DB* db_;
@@ -144,17 +146,21 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
     if ((type == kTableFile)) {
       //TODO: write the fname into data.manifest
       s = manifest_file->Append(src_fname.substr(1) + "\n");
-      if (!s.ok()) {
-        break;
-      }
-      Log(db_->GetDBOptions().info_log, "checkpoint file %s", (db_->GetName() + src_fname).c_str());
     } else {
       //TODO: copy the manifest or current files to the checkpoint dir
       Log(db_->GetOptions().info_log, "Copying %s", src_fname.c_str());
       s = CopyFile(db_->GetEnv(), db_->GetName() + src_fname,
                    full_private_path + src_fname,
                    (type == kDescriptorFile) ? manifest_file_size : 0);
+
+      if (type != kCurrentFile) {
+        manifest_file->Append(src_fname);
+      }
     }
+    if (!s.ok()) {
+      break;
+    }
+    Log(db_->GetDBOptions().info_log, "checkpoint file %s", (db_->GetName() + src_fname).c_str());
   }
   Log(db_->GetOptions().info_log, "Number of log files %" ROCKSDB_PRIszt,
       live_wal_files.size());
@@ -379,9 +385,94 @@ Status CheckpointImpl::CreateCheckpoint(const std::string& checkpoint_dir) {
   return s;
 }
 
-Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_dir) {
-    //TODO: restore from a chckepoint
-  return Status::NotSupported("");
+
+template<typename Out>
+void split(const std::string &s, char delim, Out result) {
+  std::stringstream ss;
+  ss.str(s);
+  std::string item;
+  while (std::getline(ss, item, delim)) {
+    *(result++) = item;
+  }
+}
+
+
+std::vector<std::string> split(const std::string &s, char delim) {
+  std::vector<std::string> elems;
+  split(s, delim, std::back_inserter(elems));
+  return elems;
+}
+
+Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_name) {
+  //TODO:
+  //  1. HDFSEnv not support file lock
+  //  2. only one db path and one column family is supported
+
+  if (db_->GetDBOptions().db_paths.size() > 1) {
+    return Status::NotSupported("More than one db path is not supported in internal checkpoint");
+  }
+
+  DbPath db_path = db_->GetDBOptions().db_paths.front();
+  std::string checkpoint_dir = CheckpointDirectory(db_path.path) + "/" + checkpoint_name;
+  // 1. check the checkpoint_name instance exists under checkpoint path
+  Status s = db_->GetEnv()->FileExists(checkpoint_dir);
+  if (!s.ok()) {
+    Log(db_->GetOptions().info_log, "Cannot find the checkpoint dir:",
+        CheckpointDirectory(db_path.path), "/", checkpoint_name);
+    return s;
+  }
+
+  // 2. read data.manifest
+  std::string* content;
+  ReadFileToString(db_->GetEnv(), checkpoint_dir, content);
+
+  std::vector<std::string> ref_files = split(*content, '\n');
+
+  // 3. restore all sst file to  data dir
+  // 3.a check all sst file is exist, and find all archive sst file(exclude current data sst)
+  std::string archival_dir = DataArchivalDirectory(db_path.path);
+  std::vector<std::string> files_need_move_back;
+  for (auto file : ref_files) {
+    if (file.rfind("MANIFEST") == 0) { //TODO: how impl start with?
+      s = CopyFile(db_->GetEnv(), checkpoint_dir + "/" + file, db_path.path + "/" + file, 0);
+      if (!s.ok()) {
+        Log(db_->GetOptions().info_log, "Copy checkpoint ref manifest failed for checkpoint-",
+            checkpoint_name, ":", file);
+        return s;
+      }
+    } else {
+      s = db_->GetEnv()->FileExists(archival_dir + "/" + file);
+      if (!s.ok()) {
+        s = db_->GetEnv()->FileExists(db_path.path + "/" + file);
+        if (!s.ok()) {
+          Log(db_->GetOptions().info_log, "Cannot find ref sst file for checkpoint-",
+              checkpoint_name, ":", file);
+          return s;
+        }
+        continue;
+      }
+      files_need_move_back.push_back(file);
+    }
+  }
+
+  // 3.b move back all sst file
+  for (auto file : files_need_move_back) {
+    s = db_->GetEnv()->RenameFile(archival_dir + "/" + file, db_path.path + "/" + file);
+    if (!s.ok()) {
+      Log(db_->GetOptions().info_log, "Moved ref sst file failed for checkpoint-",
+          checkpoint_name, ":", file);
+      return s;
+    }
+  }
+
+  // 4. copy CURRENT etc
+  s = CopyFile(db_->GetEnv(), checkpoint_dir + "/CURRENT", db_path.path + "/CURRENT", 0);
+  if (!s.ok()) {
+    Log(db_->GetOptions().info_log, "Copy CURRENT failed for checkpoint-", checkpoint_name);
+    return s;
+  }
+
+  return s;
 }
 
 }  // namespace rocksdb
