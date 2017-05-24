@@ -70,7 +70,7 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
             mu_.Lock();
         }
 
-        cv_.TimedWait(env_->NowMicros() + kMicrosInSecond * 2);
+        env_->SleepForMicroseconds(kMicrosInSecond*2);
     }
 }
 
