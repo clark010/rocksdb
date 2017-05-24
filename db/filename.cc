@@ -150,6 +150,10 @@ std::string CurrentFileName(const std::string& dbname) {
   return dbname + "/CURRENT";
 }
 
+std::string CheckpointCurrentFileName(const std::string& checkpoint_dir) {
+  return checkpoint_dir + "/CURRENT";
+}
+
 std::string LockFileName(const std::string& dbname) {
   return dbname + "/LOCK";
 }

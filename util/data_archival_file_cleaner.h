@@ -16,44 +16,43 @@
 #include "sync_point.h"
 #include "mutexlock.h"
 #include "db/filename.h"
+#include "utilities/checkpoint/checkpoint_file_cache.h"
 
 
 namespace rocksdb {
 
 class Env;
 class Logger;
+class CheckpointFileCache;
 
 class DataArchivalFileCleaner {
-    public:
-        DataArchivalFileCleaner(Env *env, const std::vector<DbPath>* dbPath , std::shared_ptr<Logger> info_log);
+public:
+  DataArchivalFileCleaner(Env *env, const std::vector<DbPath> *dbPath,
+                            std::shared_ptr<Logger> info_log);
+  
+  ~DataArchivalFileCleaner();
+  
+  void RequestDeletableFiles(std::queue<std::string>& deletable_files);
+  
+private:
+  Env *env_;
 
-        ~DataArchivalFileCleaner();
+  port::Mutex mu_;
 
-        void BackgroundCleaner();
+  port::CondVar cv_;
 
-        void RequestDeletableFiles(std::queue<std::string>& deletable_files);
+  bool closing_;
 
-    private:
-        Env *env_;
+  const std::vector<DbPath>* db_paths_;
 
-        port::Mutex mu_;
+  std::unique_ptr<std::thread> bg_thread_;
 
-        port::CondVar cv_;
+  std::shared_ptr<Logger> info_log_;
 
-        bool closing_;
-
-        const std::vector<DbPath>* db_paths_;
-
-        // Queue of files  which referenced by compaction
-        //std::queue<std::string> ref_files;
-
-        // Queue of files which can be delete by backgroup clean thread
-        std::queue<std::string> deletable_files_;
-
-        std::unique_ptr<std::thread> bg_thread_;
-
-        std::shared_ptr<Logger> info_log_;
-
-        static const uint64_t kMicrosInSecond = 1000 * 1000LL;
+  static const uint64_t kMicrosInSecond = 1000 * 1000LL;
+  
+  void BackgroundCleaner();
+  
+  std::unique_ptr<CheckpointFileCache> chk_file_cache_;
 };
 }

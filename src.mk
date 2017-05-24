@@ -107,6 +107,7 @@ LIB_SOURCES =                                                   \
   utilities/backupable/backupable_db.cc                         \
   utilities/convenience/info_log_finder.cc                      \
   utilities/checkpoint/checkpoint.cc                            \
+  utilities/checkpoint/checkpoint_file_cache.cc                            \
   utilities/compaction_filters/remove_emptyvalue_compactionfilter.cc    \
   utilities/document/document_db.cc                             \
   utilities/document/json_document_builder.cc                   \
