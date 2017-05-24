@@ -7,6 +7,7 @@
 #include "string_util.h"
 
 #include <iostream>
+#include <algorithm>
 
 namespace rocksdb {
 
@@ -102,7 +103,7 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
             std::string content;
             s = ReadFileToString(env_, chk_manifest, &content);
             if (!s.ok()) {
-                Header(info_log_, "[DataArchivalFileCleaner]read checkpoint-%s manifest failed", sdir);
+                Header(info_log_, "[DataArchivalFileCleaner]read checkpoint-%s manifest failed", sdir.c_str());
                 return;
             }
 
