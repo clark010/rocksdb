@@ -417,8 +417,8 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   // 1. check the checkpoint_name instance exists under checkpoint path
   Status s = db_->GetEnv()->FileExists(checkpoint_dir);
   if (!s.ok()) {
-    Log(db_->GetOptions().info_log, "Cannot find the checkpoint dir:",
-        CheckpointDirectory(db_path.path), "/", checkpoint_name);
+    Log(db_->GetOptions().info_log, "Cannot find the checkpoint dir %s/%s",
+        CheckpointDirectory(db_path.path).c_str(), checkpoint_name.c_str());
     return s;
   }
 
@@ -436,8 +436,8 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
     if (file.rfind("MANIFEST") == 0) { //TODO: how impl start with?
       s = CopyFile(db_->GetEnv(), checkpoint_dir + "/" + file, db_path.path + "/" + file, 0);
       if (!s.ok()) {
-        Log(db_->GetOptions().info_log, "Copy checkpoint ref manifest failed for checkpoint-",
-            checkpoint_name, ":", file);
+        Log(db_->GetOptions().info_log, "Copy ref manifest:%s failed for checkpoint-%s",
+            file.c_str(), checkpoint_name.c_str());
         return s;
       }
     } else {
@@ -445,8 +445,8 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
       if (!s.ok()) {
         s = db_->GetEnv()->FileExists(db_path.path + "/" + file);
         if (!s.ok()) {
-          Log(db_->GetOptions().info_log, "Cannot find ref sst file for checkpoint-",
-              checkpoint_name, ":", file);
+          Log(db_->GetOptions().info_log, "Cannot find ref sst-%s for checkpoint-%s",
+              file.c_str(), checkpoint_name.c_str());
           return s;
         }
         continue;
@@ -459,8 +459,8 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   for (auto file : files_need_move_back) {
     s = db_->GetEnv()->RenameFile(archival_dir + "/" + file, db_path.path + "/" + file);
     if (!s.ok()) {
-      Log(db_->GetOptions().info_log, "Moved ref sst file failed for checkpoint-",
-          checkpoint_name, ":", file);
+      Log(db_->GetOptions().info_log, "Moved ref sst-%s failed for checkpoint-%s",
+          file.c_str(), checkpoint_name.c_str());
       return s;
     }
   }
@@ -468,7 +468,7 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   // 4. copy CURRENT etc
   s = CopyFile(db_->GetEnv(), checkpoint_dir + "/CURRENT", db_path.path + "/CURRENT", 0);
   if (!s.ok()) {
-    Log(db_->GetOptions().info_log, "Copy CURRENT failed for checkpoint-", checkpoint_name);
+    Log(db_->GetOptions().info_log, "Copy CURRENT failed for checkpoint-%s", checkpoint_name.c_str());
     return s;
   }
 
