@@ -107,7 +107,8 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   std::string archival_dir = DataArchivalDirectory(db_path.path);
   std::vector<std::string> files_need_move_back;
   for (auto file : ref_files) {
-    if (file.rfind("MANIFEST") == 0) { //TODO: how impl start with?
+    Slice rest(file);
+    if (rest.starts_with("MANIFEST")) { //TODO: how impl start with?
       s = CopyFile(db_->GetEnv(), checkpoint_dir + "/" + file, db_path.path + "/" + file, 0);
       if (!s.ok()) {
         Log(db_->GetDBOptions().info_log, "Copy ref manifest:%s failed for checkpoint-%s",
@@ -140,7 +141,7 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   }
 
   // 4. copy CURRENT etc
-  s = CopyFile(db_->GetEnv(), checkpoint_dir + "/CURRENT", db_path.path + "/CURRENT", 0);
+  s = CopyFile(db_->GetEnv(), CheckpointCurrentFileName(checkpoint_dir), CurrentFileName(db_path.path), 0);
   if (!s.ok()) {
     Log(db_->GetDBOptions().info_log, "Copy CURRENT failed for checkpoint-%s", checkpoint_name.c_str());
     return s;

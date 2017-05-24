@@ -89,6 +89,7 @@ extern std::string DescriptorFileName(const std::string& dbname,
 // of the current manifest file.  The result will be prefixed with
 // "dbname".
 extern std::string CurrentFileName(const std::string& dbname);
+extern std::string CheckpointCurrentFileName(const std::string& dbname);
 
 // Return the name of the lock file for the db named by
 // "dbname".  The result will be prefixed with "dbname".
