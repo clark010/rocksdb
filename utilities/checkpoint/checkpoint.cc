@@ -166,7 +166,7 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
   uint64_t sequence_number = db_->GetLatestSequenceNumber();
   VectorLogPtr live_wal_files;
 
-  std::string checkpoint_dir = db_->GetDBOptions().db_paths.front().path + "/checkpoint/" + checkpoint_name;
+  std::string checkpoint_dir = CheckpointDirectory(db_->GetDBOptions().db_paths.front().path) + checkpoint_name;
   s = db_->GetEnv()->FileExists(checkpoint_dir);
   if (s.ok()) {
     return Status::InvalidArgument("Directory exists");
