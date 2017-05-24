@@ -155,7 +155,7 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
                    (type == kDescriptorFile) ? manifest_file_size : 0);
 
       if (type != kCurrentFile) {
-        manifest_file->Append(src_fname);
+        manifest_file->Append(src_fname.substr(1) + "\n");
       }
     }
     if (!s.ok()) {
