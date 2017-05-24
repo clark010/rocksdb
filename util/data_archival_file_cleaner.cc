@@ -99,6 +99,9 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
 
         std::vector<std::string> checkpoint_ref_files;
         for (auto sdir : chk_sub_dirs) {
+            if (sdir == "." || sdir == "..") {
+                continue;
+            }
             std::string chk_manifest = chk_dir + "/" + sdir + "/data.manifest"; //TODO: use const var for data.manifest
             std::string content;
             s = ReadFileToString(env_, chk_manifest, &content);
