@@ -46,7 +46,6 @@ class CheckpointImpl : public Checkpoint {
   using Checkpoint::CreateCheckpoint;
   virtual Status CreateCheckpoint(const std::string& checkpoint_dir) override;
   virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name) override;
-  virtual Status RestoreInternalCheckpoint(const Options& options, const std::string& checkpoint_name) override;
 
  private:
   DB* db_;

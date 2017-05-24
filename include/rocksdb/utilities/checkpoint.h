@@ -14,6 +14,7 @@
 namespace rocksdb {
 
 class DB;
+class Options;
 
 class Checkpoint {
  public:
