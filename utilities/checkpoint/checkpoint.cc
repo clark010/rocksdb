@@ -423,10 +423,10 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   }
 
   // 2. read data.manifest
-  std::string* content;
-  ReadFileToString(db_->GetEnv(), checkpoint_dir, content);
+  std::string content;
+  ReadFileToString(db_->GetEnv(), checkpoint_dir, &content);
 
-  std::vector<std::string> ref_files = split(*content, '\n');
+  std::vector<std::string> ref_files = split(content, '\n');
 
   // 3. restore all sst file to  data dir
   // 3.a check all sst file is exist, and find all archive sst file(exclude current data sst)
