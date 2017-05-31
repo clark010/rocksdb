@@ -108,7 +108,7 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   std::vector<std::string> files_need_move_back;
   for (auto file : ref_files) {
     Slice rest(file);
-    if (rest.starts_with("MANIFEST")) { //TODO: how impl start with?
+    if (rest.starts_with("MANIFEST")) {
       s = CopyFile(db_->GetEnv(), checkpoint_dir + "/" + file, db_path.path + "/" + file, 0);
       if (!s.ok()) {
         Log(db_->GetDBOptions().info_log, "Copy ref manifest:%s failed for checkpoint-%s",
@@ -158,7 +158,6 @@ Status CheckpointImpl::CreateInternalCheckpoint(const std::string &checkpoint_na
   }
 
   // TODO: check family size, if maily more than one then return;
-
 
   Status s;
   std::vector<std::string> live_files;

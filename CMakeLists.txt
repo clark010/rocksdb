@@ -238,6 +238,7 @@ set(SOURCES
         util/xfunc.cc
         util/xxhash.cc
         utilities/backupable/backupable_db.cc
+        utilities/checkpoint/checkpoint_file_cache.cc
         utilities/checkpoint/checkpoint.cc
         utilities/document/document_db.cc
         utilities/document/json_document.cc
@@ -271,7 +272,7 @@ set(SOURCES
 set(TESTUTIL_SOURCE
     db/db_test_util.cc
     util/thread_status_updater_debug.cc
-        util/data_archival_file_cleaner.cc util/data_archival_file_cleaner.h)
+        util/data_archival_file_cleaner.cc util/data_archival_file_cleaner.h utilities/checkpoint/checkpoint_file_cache.h)
 
 add_library(rocksdblib${ARTIFACT_SUFFIX} ${SOURCES})
 set_target_properties(rocksdblib${ARTIFACT_SUFFIX} PROPERTIES COMPILE_FLAGS "/Fd${CMAKE_CFG_INTDIR}/rocksdblib${ARTIFACT_SUFFIX}.pdb")
