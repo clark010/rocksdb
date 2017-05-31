@@ -99,6 +99,9 @@ void CheckpointFileCache::RefreshCache() {
   
   // 3. update the cache
   for (std::string dir : chk_sub_dirs) {
+    if (dir == "." || dir == "..") {
+      continue;
+    }
     s = env_->GetFileModificationTime(checkpoint_dir_ + "/" + dir + "/data.manifest", &modified_time);
     if (!s.ok()) {
       Header(info_log_, "get checkpoint-%s CURRENT modified time failed", dir.c_str());

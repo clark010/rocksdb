@@ -98,9 +98,16 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
     if (unref_files.size() == 0) {
       std::cout << "no deletable file" << std::endl;
     }
+    
     for (auto f : unref_files) {
-      deletable_files.push(arc_dir + "/" + f);
-      std::cout << "add deletable file:" << f << std::endl;
+      uint64_t number;
+      FileType type;
+      Slice slice;
+      if (ParseFileName(f, &number, slice, &type)) {
+        deletable_files.push(arc_dir + "/" + f);
+        std::cout << "add deletable file: " << arc_dir << "/" << f << std::endl;
+      }
+      
     }
   
     //std::set<std::string> checkpoint_ref_files;
