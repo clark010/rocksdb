@@ -93,8 +93,16 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
       return;
     }
 
-    std::vector<std::string> checkpoint_ref_files;
+    std::queue<std::string> checkpoint_ref_files;
+    std::vector<std::string> unref_files = chk_file_cache_.get()->getUnreferencedFiles(arc_files);
+    for (auto f : unref_files) {
+      deletable_files.push(f);
+      std::cout << "add deletable file:" << f << std::endl;
+    }
+  
     //std::set<std::string> checkpoint_ref_files;
+    
+    /*
     for (auto sdir : chk_sub_dirs) {
       if (sdir == "." || sdir == "..") {
         continue;
@@ -106,12 +114,13 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
         Header(info_log_, "[DataArchivalFileCleaner]read checkpoint-%s manifest failed", sdir.c_str());
         return;
       }
-
+    
       std::vector<std::string> ref_files_ = StringSplit(content, '\n');
       checkpoint_ref_files.insert(checkpoint_ref_files.end(), ref_files_.begin(), ref_files_.end());
       ref_files_.clear();
     }
-
+    
+    
     uint64_t number;
     FileType type;
     Slice slice;
@@ -130,6 +139,8 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
         }
       }
     }
+     */
+  
   }
 }
 
