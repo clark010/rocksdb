@@ -53,7 +53,6 @@ private:
   
   void BackgroundCleaner();
   
-  CheckpointFileCache chk_file_cache_;
-  
+  std::unique_ptr<CheckpointFileCache> chk_file_cache_;
 };
 }
