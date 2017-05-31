@@ -6,6 +6,7 @@
 #include "util/data_archival_file_cleaner.h"
 
 #include <iostream>
+#include <algorithm>
 
 namespace rocksdb {
 
