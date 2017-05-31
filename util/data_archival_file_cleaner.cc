@@ -7,11 +7,8 @@
 #include "string_util.h"
 
 #include <iostream>
-#include <algorithm>
-#include <set>
 
 namespace rocksdb {
-
 
 DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbPath>* db_paths,
                                                  std::shared_ptr<Logger> info_log)

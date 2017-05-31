@@ -21,7 +21,7 @@
 namespace rocksdb {
 
 class Env;
-class Logger
+class Logger;
 
 class CheckpointFileCache {
 public:
