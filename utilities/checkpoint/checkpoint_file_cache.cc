@@ -38,7 +38,7 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
   
   std::vector<std::string> unref_files;
   
-  MutexLock l(&mu_);
+  //MutexLock l(&mu_);
   
   bool freshed = false;
   for (auto file : files) {
