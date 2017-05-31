@@ -10,7 +10,7 @@
 namespace rocksdb {
 
 CheckpointFileCache::CheckpointFileCache(Env *env,
-                                         std::string &checkpoint_dir,
+                                         std::string checkpoint_dir,
                                          std::shared_ptr<Logger> info_log)
   :env_(env),
    cv_(&mu_),
@@ -30,7 +30,7 @@ void CheckpointFileCache::BackgroundRefresher() {
   
     RefreshCache();
   
-    env_->SleepForMicroseconds(kMicrosInSecond*2);
+    env_->SleepForMicroseconds(kMicrosInSecond*60);
   }
 }
 
