@@ -95,6 +95,9 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
 
     std::queue<std::string> checkpoint_ref_files;
     std::vector<std::string> unref_files = chk_file_cache_.get()->getUnreferencedFiles(arc_files);
+    if (unref_files.size() == 0) {
+      std::cout << "no deletable file" << std::endl;
+    }
     for (auto f : unref_files) {
       deletable_files.push(f);
       std::cout << "add deletable file:" << f << std::endl;

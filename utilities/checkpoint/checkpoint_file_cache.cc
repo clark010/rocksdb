@@ -40,21 +40,19 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
   
   MutexLock l(&mu_);
   
+  bool freshed = false;
   for (auto file : files) {
-    bool freshed = false;
     if (!freshed && cache_.find(file) == cache_.end()) {
-      mu_.Unlock();
+      //mu_.Unlock();
       
       CheckpointFileCache::RefreshCache();
       
-      mu_.Lock();
+      //mu_.Lock();
     }
     
     if (cache_.find(file) == cache_.end()) {
-      continue;
+      unref_files.push_back(file);
     }
-  
-    unref_files.push_back(file);
   }
   
   return unref_files;
