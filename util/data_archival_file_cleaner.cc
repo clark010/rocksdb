@@ -15,7 +15,7 @@ DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbP
     cv_(&mu_),
     closing_(false),
     info_log_(info_log),
-    chk_file_cache_(CheckpointFileCache(env, (*db_paths)[0], info_log)) {
+    chk_file_cache_(CheckpointFileCache(env, (*db_paths).at(0), info_log)) {
 
   db_paths_ = db_paths;
   bg_thread_.reset(new std::thread(&DataArchivalFileCleaner::BackgroundCleaner, this));
