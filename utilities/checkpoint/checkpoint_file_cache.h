@@ -46,7 +46,7 @@ private:
   
   bool closing_;
   
-  long last_modified_time_;
+  uint64_t last_modified_time_;
   
   std::shared_ptr<Logger> info_log_;
   
