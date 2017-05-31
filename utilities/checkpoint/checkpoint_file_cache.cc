@@ -66,7 +66,7 @@ void CheckpointFileCache::RefreshCache() {
   
   std::cout << "[CachekpointFileCache]refresh cache" << std::endl;
   
-  MutexLock l(&mu_);
+  //MutexLock l(&mu_);
   
   Status s;
   
