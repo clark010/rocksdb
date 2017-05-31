@@ -12,7 +12,7 @@
 
 #include <port/port.h>
 #include <include/rocksdb/env.h>
-
+#include <util/sync_point.h>
 #include "util/mutexlock.h"
 #include "util/string_util.h"
 #include "db/filename.h"
@@ -25,7 +25,9 @@ class Logger;
 
 class CheckpointFileCache {
 public:
-  CheckpointFileCache(Env *env, std::string checkpoint_dir, std::shared_ptr<Logger> info_log);
+  CheckpointFileCache(Env* env, DbPath db_path, std::shared_ptr<Logger> info_log);
+  
+  //CheckpointFileCache(Env *env, std::string checkpoint_dir, std::shared_ptr<Logger> info_log);
 
   ~CheckpointFileCache();
 
@@ -41,6 +43,8 @@ private:
   port::Mutex mu_;
   
   port::CondVar cv_;
+  
+  DbPath db_path_;
   
   std::string checkpoint_dir_;
   

@@ -3,22 +3,22 @@
 //  LICENSE file in the root directory of this source tree. An additional grant
 //  of patent rights can be found in the PATENTS file in the same directory.
 
-#include <util/sync_point.h>
 #include <iostream>
 #include "utilities/checkpoint/checkpoint_file_cache.h"
 
 namespace rocksdb {
 
 CheckpointFileCache::CheckpointFileCache(Env *env,
-                                         std::string checkpoint_dir,
+                                         DbPath db_path,
                                          std::shared_ptr<Logger> info_log)
   :env_(env),
    cv_(&mu_),
-   checkpoint_dir_(checkpoint_dir),
+   db_path_(db_path),
    closing_(false),
    last_modified_time_(0),
    info_log_(info_log) {
   
+  checkpoint_dir_ = db_path_.path + "/checkpoint";
   bg_thread_.reset(new std::thread(&CheckpointFileCache::BackgroundRefresher, this));
 };
 

@@ -16,20 +16,24 @@
 #include "sync_point.h"
 #include "mutexlock.h"
 #include "db/filename.h"
+#include "utilities/checkpoint/checkpoint_file_cache.h"
 
 
 namespace rocksdb {
 
 class Env;
 class Logger;
+class CheckpointFileCache;
 
 class DataArchivalFileCleaner {
 public:
-  DataArchivalFileCleaner(Env *env, const std::vector<DbPath>* dbPath , std::shared_ptr<Logger> info_log);
+  DataArchivalFileCleaner(Env *env, const std::vector<DbPath> *dbPath,
+                            std::shared_ptr<Logger> info_log);
+  
   ~DataArchivalFileCleaner();
   
   void RequestDeletableFiles(std::queue<std::string>& deletable_files);
-
+  
 private:
   Env *env_;
 
@@ -48,5 +52,8 @@ private:
   static const uint64_t kMicrosInSecond = 1000 * 1000LL;
   
   void BackgroundCleaner();
+  
+  CheckpointFileCache chk_file_cache_;
+  
 };
 }

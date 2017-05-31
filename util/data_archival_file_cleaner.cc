@@ -4,18 +4,18 @@
 //  of patent rights can be found in the PATENTS file in the same directory.
 
 #include "util/data_archival_file_cleaner.h"
-#include "string_util.h"
 
 #include <iostream>
 
 namespace rocksdb {
 
-DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbPath>* db_paths,
+DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbPath> *db_paths,
                                                  std::shared_ptr<Logger> info_log)
-  :env_(env),
-   cv_(&mu_),
-   closing_(false),
-   info_log_(info_log) {
+  : env_(env),
+    cv_(&mu_),
+    closing_(false),
+    info_log_(info_log),
+    chk_file_cache_(CheckpointFileCache(env, (*db_paths)[0], info_log)) {
 
   db_paths_ = db_paths;
   bg_thread_.reset(new std::thread(&DataArchivalFileCleaner::BackgroundCleaner, this));
@@ -74,7 +74,6 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
 void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& deletable_files) {
   Header(info_log_, "[DataArchivalFileCleaner]Request deletable files");
   std::cout << "[DataArchivalFileCleaner]Request deletable files" << std::endl;
-
 
   for (auto p : *db_paths_) {
     std::vector<std::string> arc_files;
