@@ -44,6 +44,8 @@ private:
   
   port::CondVar cv_;
   
+  bool closing_;
+  
   long last_modified_time_;
 
   std::unique_ptr<std::thread> bg_thread_;

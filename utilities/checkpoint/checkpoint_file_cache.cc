@@ -3,6 +3,8 @@
 //  LICENSE file in the root directory of this source tree. An additional grant
 //  of patent rights can be found in the PATENTS file in the same directory.
 
+#include <util/sync_point.h>
+#include <iostream>
 #include "utilities/checkpoint/checkpoint_file_cache.h"
 
 namespace rocksdb {
@@ -17,7 +19,7 @@ CheckpointFileCache::CheckpointFileCache(Env *env,
    last_modified_time_(0),
    info_log_(info_log) {
   
-  bg_thread_.reset(new std::thread(&DataArchivalFileCleaner::BackgroundCleaner, this));
+  bg_thread_.reset(new std::thread(&CheckpointFileCache::BackgroundRefresher, this));
 }
 
 void CheckpointFileCache::BackgroundRefresher() {
@@ -39,8 +41,8 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
   MutexLock l(&mu_);
   
   for (auto file : files) {
-    boolean freshed = false;
-    if (!freshed && !cache_.find(file)) {
+    bool freshed = false;
+    if (!freshed && cache_.find(file) == cache_.end()) {
       mu_.Unlock();
       
       CheckpointFileCache::RefreshCache();
@@ -48,7 +50,7 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
       mu_.Lock();
     }
     
-    if (cache_.find(file)) {
+    if (cache_.find(file) == cache_.end()) {
       continue;
     }
   
@@ -81,7 +83,7 @@ void CheckpointFileCache::RefreshCache() {
   
   // 2. list checkpoint root dir and find all changed dir which modified time > last_modifed_time
   std::vector<std::string> chk_sub_dirs;
-  s = env_->GetChildren(checkpoint_dir_, chk_sub_dirs);
+  s = env_->GetChildren(checkpoint_dir_, &chk_sub_dirs);
   if (!s.ok) {
     Header(info_log_, "list checkpoint root dir failed");
     return;
@@ -96,7 +98,7 @@ void CheckpointFileCache::RefreshCache() {
   
   // 3. update the cache
   for (auto dir : chk_sub_dirs) {
-    s = env_->GetFileModificationTime(checkpoint_dir_ + "/" + dir + "/data.manifest", modified_time);
+    s = env_->GetFileModificationTime(checkpoint_dir_ + "/" + dir + "/data.manifest", &modified_time);
     if (!s.ok()) {
       Header(info_log_, "get checkpoint-%s CURRENT modified time failed", dir);
       continue;
@@ -106,9 +108,9 @@ void CheckpointFileCache::RefreshCache() {
   
     if (modified_time > last_modified_time_) {
       std::string content;
-      ReadFileToString(env_, checkpoint_dir_ + "/" + dir + "/data.manifest", content);
+      ReadFileToString(env_, checkpoint_dir_ + "/" + dir + "/data.manifest", &content);
       
-      std::vector<std::string> ref_files = StringSplit(content);
+      std::vector<std::string> ref_files = StringSplit(content, '\n');
       if (ref_files.size() <  2) {
         Header(info_log_, "checkpoint-%s data.manifest pattern error", dir);
         continue;
@@ -126,8 +128,9 @@ void CheckpointFileCache::RefreshCache() {
       
       knows.insert(std::make_pair(dir, buf_ref_files_));
     } else {
-      knows.insert(std::make_pair(dir, checkpoints_.find(dir)->second)); //TODO: bug?
-      all_ref_files_.insert();
+      std::set<std::string> cset = checkpoints_.find(dir)->second;
+      knows.insert(std::make_pair(dir, cset)); //TODO: bug?
+      all_ref_files_.insert(cset.begin(), cset.end());
     }
   }
   
