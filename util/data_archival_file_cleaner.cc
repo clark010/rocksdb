@@ -24,17 +24,6 @@ DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbP
   bg_thread_.reset(new std::thread(&DataArchivalFileCleaner::BackgroundCleaner, this));
 };
 
-void DataArchivalFileCleaner::BackgroudCheckpointFileCacheFresher() {
-  TEST_SYNC_POINT("[DataArchivalFileCleaner]DataArchivalFileCleaner::BackgroundCheckpointFileCacheFresher");
-  
-  Header(info_log_, "start %s thread", "CheckpointFileCacheFresher");
-  std::cout << "[DataArchivalFileCleaner]Start CheckpointFileCacheFresher thread" << std::endl;
-  
-  while (true) {
-  
-  }
-}
-
 void DataArchivalFileCleaner::BackgroundCleaner() {
   TEST_SYNC_POINT("[DataArchivalFileCleaner]DataArchivalFileCleaner::BackgroundCleaner");
 

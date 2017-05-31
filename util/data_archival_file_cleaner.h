@@ -48,7 +48,5 @@ private:
   static const uint64_t kMicrosInSecond = 1000 * 1000LL;
   
   void BackgroundCleaner();
-  
-  void BackgroudCheckpointFileCacheFresher();
 };
 }
