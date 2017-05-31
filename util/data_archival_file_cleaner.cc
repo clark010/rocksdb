@@ -99,7 +99,7 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
       std::cout << "no deletable file" << std::endl;
     }
     for (auto f : unref_files) {
-      deletable_files.push(f);
+      deletable_files.push(arc_dir + "/" + f);
       std::cout << "add deletable file:" << f << std::endl;
     }
   
