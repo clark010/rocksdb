@@ -28,7 +28,7 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
   Header(info_log_, "start %s thread", "DataArchivalFileCleaner");
   std::cout << "[DataArchivalFileCleaner]Start DataArchivalFileCleaner thread" << std::endl;
 
-  while(true) {
+  while(true && !closing_) {
     MutexLock l(&mu_);
 
     // get all deletable files into queue
@@ -40,11 +40,6 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
       cv_.Wait();
     }
     */
-
-    if (closing_) {
-      //std::cout << "[DataArchivalFileCleaner]:Cleaner is closing, return" << std::endl;
-      return;
-    }
 
     while (!deletable_files.empty() && !closing_) {
       const std::string deletable_file = deletable_files.front();
@@ -66,8 +61,9 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
 
       mu_.Lock();
     }
-
-    env_->SleepForMicroseconds(kMicrosInSecond*2);
+    
+    cv_.TimedWait(env_->NowMicros() + kMicrosInSecond*2);
+    //env_->SleepForMicroseconds(kMicrosInSecond*2);
   }
 }
 

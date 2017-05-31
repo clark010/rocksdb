@@ -30,7 +30,8 @@ void CheckpointFileCache::BackgroundRefresher() {
   
     RefreshCache();
   
-    env_->SleepForMicroseconds(kMicrosInSecond*60);
+    cv_.TimedWait(env_->NowMicros() + kMicrosInSecond*60);
+    //env_->SleepForMicroseconds(kMicrosInSecond*60);
   }
 }
 
@@ -58,6 +59,7 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
     if (cache_.find(file) != cache_.end()) {
       continue;
     }
+    
     unref_files.push_back(file);
   }
   
