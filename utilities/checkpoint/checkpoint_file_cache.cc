@@ -84,7 +84,7 @@ void CheckpointFileCache::RefreshCache() {
   // 2. list checkpoint root dir and find all changed dir which modified time > last_modifed_time
   std::vector<std::string> chk_sub_dirs;
   s = env_->GetChildren(checkpoint_dir_, &chk_sub_dirs);
-  if (!s.ok) {
+  if (!s.ok()) {
     Header(info_log_, "list checkpoint root dir failed");
     return;
   }
@@ -97,7 +97,7 @@ void CheckpointFileCache::RefreshCache() {
   std::set<std::string> all_ref_files_;
   
   // 3. update the cache
-  for (auto dir : chk_sub_dirs) {
+  for (std::string dir : chk_sub_dirs) {
     s = env_->GetFileModificationTime(checkpoint_dir_ + "/" + dir + "/data.manifest", &modified_time);
     if (!s.ok()) {
       Header(info_log_, "get checkpoint-%s CURRENT modified time failed", dir);
