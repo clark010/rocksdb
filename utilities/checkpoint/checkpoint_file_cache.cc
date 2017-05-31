@@ -20,7 +20,7 @@ CheckpointFileCache::CheckpointFileCache(Env *env,
    info_log_(info_log) {
   
   bg_thread_.reset(new std::thread(&CheckpointFileCache::BackgroundRefresher, this));
-}
+};
 
 void CheckpointFileCache::BackgroundRefresher() {
   while(true) {
