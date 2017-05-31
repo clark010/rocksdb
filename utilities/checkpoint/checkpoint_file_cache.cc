@@ -42,6 +42,9 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
   
   bool freshed = false;
   for (auto file : files) {
+    if (file == "." || file == "..") {
+      continue;
+    }
     std::cout << "check file deletable:" << file << std::endl;
     if (!freshed && cache_.find(file) == cache_.end()) {
       //mu_.Unlock();

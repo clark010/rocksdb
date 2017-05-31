@@ -105,7 +105,7 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
       Slice slice;
       if (ParseFileName(f, &number, slice, &type)) {
         deletable_files.push(arc_dir + "/" + f);
-        std::cout << "add deletable file: " << arc_dir << "/" << f << std::endl;
+        std::cout << "[DataArchivalFileCleaner]add deletable file: " << arc_dir << "/" << f << std::endl;
       }
       
     }
