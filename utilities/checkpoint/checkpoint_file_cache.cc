@@ -100,7 +100,7 @@ void CheckpointFileCache::RefreshCache() {
   for (std::string dir : chk_sub_dirs) {
     s = env_->GetFileModificationTime(checkpoint_dir_ + "/" + dir + "/data.manifest", &modified_time);
     if (!s.ok()) {
-      Header(info_log_, "get checkpoint-%s CURRENT modified time failed", dir);
+      Header(info_log_, "get checkpoint-%s CURRENT modified time failed", dir.c_str());
       continue;
     }
   
@@ -112,7 +112,7 @@ void CheckpointFileCache::RefreshCache() {
       
       std::vector<std::string> ref_files = StringSplit(content, '\n');
       if (ref_files.size() <  2) {
-        Header(info_log_, "checkpoint-%s data.manifest pattern error", dir);
+        Header(info_log_, "checkpoint-%s data.manifest pattern error", dir.c_str());
         continue;
       }
   
