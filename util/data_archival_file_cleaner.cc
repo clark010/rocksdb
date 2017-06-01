@@ -24,9 +24,9 @@ DataArchivalFileCleaner::DataArchivalFileCleaner(Env *env, const std::vector<DbP
 
 void DataArchivalFileCleaner::BackgroundCleaner() {
   TEST_SYNC_POINT("[DataArchivalFileCleaner]DataArchivalFileCleaner::BackgroundCleaner");
-
-  Header(info_log_, "start %s thread", "DataArchivalFileCleaner");
-  std::cout << "[DataArchivalFileCleaner]Start DataArchivalFileCleaner thread" << std::endl;
+  
+  Log(InfoLogLevel::INFO_LEVEL, info_log_, "start %s thread", "DataArchivalFileCleaner");
+  //std::cout << "[DataArchivalFileCleaner]Start DataArchivalFileCleaner thread" << std::endl;
 
   while(true && !closing_) {
     MutexLock l(&mu_);
@@ -49,35 +49,31 @@ void DataArchivalFileCleaner::BackgroundCleaner() {
 
       Status s = env_->DeleteFile(deletable_file);
       if (s.ok()) {
-        Header(info_log_, "[DataArchivalFileCleaner]Delete file:%s", deletable_file.c_str());
-        std::cout << "[DataArchivalFileCleaner]Delete file:" << deletable_file << std::endl;
+        Log(InfoLogLevel::INFO_LEVEL, info_log_,
+            "[DataArchivalFileCleaner]Delete file:%s", deletable_file.c_str());
+        //std::cout << "[DataArchivalFileCleaner]Delete file:" << deletable_file << std::endl;
       } else {
-        std::cout << "[DataArchivalFileCleaner]Failed Delete file:" << deletable_file
-                  << ", error:" << s.ToString()
-                  << std::endl;
-        Header(info_log_, "[DataArchivalFileCleaner]Failed delete file:%, error info: %s",
+        //std::cout << "[DataArchivalFileCleaner]Failed Delete file:" << deletable_file << ", error:" << s.ToString() << std::endl;
+        Log(InfoLogLevel::WARN_LEVEL, info_log_, "[DataArchivalFileCleaner]Failed delete file:%, error info: %s",
                deletable_file.c_str(), s.ToString().c_str());
       }
 
       mu_.Lock();
     }
     
-    cv_.TimedWait(env_->NowMicros() + kMicrosInSecond*2);
+    cv_.TimedWait(env_->NowMicros() + kMicrosInSecond*60);
     //env_->SleepForMicroseconds(kMicrosInSecond*2);
   }
 }
 
 //TODO: request ArchivalFileCache to get files to delete
 void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& deletable_files) {
-  Header(info_log_, "[DataArchivalFileCleaner]Request deletable files");
-  std::cout << "[DataArchivalFileCleaner]Request deletable files" << std::endl;
-
   for (auto p : *db_paths_) {
     std::vector<std::string> arc_files;
     std::string arc_dir = DataArchivalDirectory(p.path);
     Status s = env_->GetChildren(arc_dir, &arc_files);
     if (!s.ok()) {
-        Header(info_log_, "[DataArchivalFileCleaner]list archive dir failed");
+      Log(InfoLogLevel::WARN_LEVEL, info_log_, "[DataArchivalFileCleaner]list archive dir failed");
         return;
     }
 
@@ -85,14 +81,15 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
     std::string chk_dir = CheckpointDirectory(p.path);
     s = env_->GetChildren(chk_dir, &chk_sub_dirs);
     if (!s.ok()) {
-      Header(info_log_, "[DataArchivalFileCleaner]list checkpoint dir failed");
+      Log(InfoLogLevel::WARN_LEVEL, info_log_, "[DataArchivalFileCleaner]list checkpoint dir failed");
       return;
     }
 
     std::queue<std::string> checkpoint_ref_files;
     std::vector<std::string> unref_files = chk_file_cache_.get()->getUnreferencedFiles(arc_files);
     if (unref_files.size() == 0) {
-      std::cout << "no deletable file" << std::endl;
+      //std::cout << "no deletable file" << std::endl;
+      continue;
     }
     
     for (auto f : unref_files) {
@@ -101,52 +98,10 @@ void DataArchivalFileCleaner::RequestDeletableFiles(std::queue<std::string>& del
       Slice slice;
       if (ParseFileName(f, &number, slice, &type)) {
         deletable_files.push(arc_dir + "/" + f);
-        std::cout << "[DataArchivalFileCleaner]add deletable file: " << arc_dir << "/" << f << std::endl;
+        //std::cout << "[DataArchivalFileCleaner]add deletable file: " << arc_dir << "/" << f << std::endl;
       }
       
     }
-  
-    //std::set<std::string> checkpoint_ref_files;
-    
-    /*
-    for (auto sdir : chk_sub_dirs) {
-      if (sdir == "." || sdir == "..") {
-        continue;
-      }
-      std::string chk_manifest = chk_dir + "/" + sdir + "/data.manifest"; //TODO: use const var for data.manifest
-      std::string content;
-      s = ReadFileToString(env_, chk_manifest, &content);
-      if (!s.ok()) {
-        Header(info_log_, "[DataArchivalFileCleaner]read checkpoint-%s manifest failed", sdir.c_str());
-        return;
-      }
-    
-      std::vector<std::string> ref_files_ = StringSplit(content, '\n');
-      checkpoint_ref_files.insert(checkpoint_ref_files.end(), ref_files_.begin(), ref_files_.end());
-      ref_files_.clear();
-    }
-    
-    
-    uint64_t number;
-    FileType type;
-    Slice slice;
-    for (auto file : arc_files) {
-      if (ParseFileName(file, &number, slice, &type)) {
-        if (std::find(checkpoint_ref_files.begin(), checkpoint_ref_files.end(), file) == checkpoint_ref_files.end()) {
-          deletable_files.push(arc_dir + "/" + file);
-          Header(info_log_, "[DataArchivalFileCleaner]Add deletable file:%s", file.c_str());
-          std::cout << "[DataArchivalFileCleaner]Add deletable file:"
-                    << file
-                    << std::endl;
-        } else {
-          std::cout << "[DataArchivalFileCleaner]Not deletable file:"
-                    << file
-                    << std::endl;
-        }
-      }
-    }
-     */
-  
   }
 }
 

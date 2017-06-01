@@ -46,12 +46,12 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
     if (file == "." || file == "..") {
       continue;
     }
-    std::cout << "check file deletable:" << file << std::endl;
+    //std::cout << "check file deletable:" << file << std::endl;
     if (!freshed && cache_.find(file) == cache_.end()) {
       mu_.Unlock();
       
       CheckpointFileCache::RefreshCache();
-      std::cout << "current cache size:" << cache_.size() << std::endl;
+      //std::cout << "current cache size:" << cache_.size() << std::endl;
       freshed = true;
       mu_.Lock();
     }
@@ -69,7 +69,7 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
 void CheckpointFileCache::RefreshCache() {
   TEST_SYNC_POINT("[CachekpointFileCache]CachekpointFileCache::BackgroundRefresher");
   
-  std::cout << "[CachekpointFileCache]refresh cache" << std::endl;
+  //std::cout << "[CachekpointFileCache]refresh cache" << std::endl;
   
   MutexLock l(&mu_);
   
@@ -79,7 +79,7 @@ void CheckpointFileCache::RefreshCache() {
   uint64_t modified_time;
   s = env_->GetFileModificationTime(checkpoint_dir_, &modified_time);
   if (!s.ok()) {
-    Header(info_log_, "get checkpoint root dir modified time failed");
+    Log(InfoLogLevel::WARN_LEVEL, info_log_, "get checkpoint root dir modified time failed");
     return;
   }
   
@@ -91,7 +91,7 @@ void CheckpointFileCache::RefreshCache() {
   std::vector<std::string> chk_sub_dirs;
   s = env_->GetChildren(checkpoint_dir_, &chk_sub_dirs);
   if (!s.ok()) {
-    Header(info_log_, "list checkpoint root dir failed");
+    Log(InfoLogLevel::WARN_LEVEL, info_log_, "list checkpoint root dir failed");
     return;
   }
   
@@ -109,7 +109,7 @@ void CheckpointFileCache::RefreshCache() {
     }
     s = env_->GetFileModificationTime(checkpoint_dir_ + "/" + dir + "/data.manifest", &modified_time);
     if (!s.ok()) {
-      Header(info_log_, "get checkpoint-%s CURRENT modified time failed", dir.c_str());
+      Log(InfoLogLevel::WARN_LEVEL, info_log_, "get checkpoint-%s CURRENT modified time failed", dir.c_str());
       continue;
     }
   
@@ -121,7 +121,7 @@ void CheckpointFileCache::RefreshCache() {
       
       std::vector<std::string> ref_files = StringSplit(content, '\n');
       if (ref_files.size() <  2) {
-        Header(info_log_, "checkpoint-%s data.manifest pattern error", dir.c_str());
+        Log(InfoLogLevel::WARN_LEVEL, info_log_, "checkpoint-%s data.manifest pattern error", dir.c_str());
         continue;
       }
   
