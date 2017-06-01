@@ -39,7 +39,7 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
   
   std::vector<std::string> unref_files;
   
-  //MutexLock l(&mu_);
+  MutexLock l(&mu_);
   
   bool freshed = false;
   for (auto file : files) {
@@ -48,12 +48,12 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
     }
     std::cout << "check file deletable:" << file << std::endl;
     if (!freshed && cache_.find(file) == cache_.end()) {
-      //mu_.Unlock();
+      mu_.Unlock();
       
       CheckpointFileCache::RefreshCache();
       std::cout << "current cache size:" << cache_.size() << std::endl;
       freshed = true;
-      //mu_.Lock();
+      mu_.Lock();
     }
     
     if (cache_.find(file) != cache_.end()) {
@@ -71,7 +71,7 @@ void CheckpointFileCache::RefreshCache() {
   
   std::cout << "[CachekpointFileCache]refresh cache" << std::endl;
   
-  //MutexLock l(&mu_);
+  MutexLock l(&mu_);
   
   Status s;
   
