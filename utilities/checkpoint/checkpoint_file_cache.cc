@@ -12,7 +12,7 @@ CheckpointFileCache::CheckpointFileCache(Env *env,
                                          DbPath db_path,
                                          std::shared_ptr<Logger> info_log)
   :env_(env),
-   cv_(&mu_),
+   cv_(&cv_mu_),
    db_path_(db_path),
    closing_(false),
    last_modified_time_(0),
@@ -30,6 +30,7 @@ void CheckpointFileCache::BackgroundRefresher() {
   
     RefreshCache();
   
+    MutexLock l(&cv_mu_);
     cv_.TimedWait(env_->NowMicros() + kMicrosInSecond*60);
     //env_->SleepForMicroseconds(kMicrosInSecond*60);
   }
@@ -50,7 +51,7 @@ std::vector<std::string> CheckpointFileCache::getUnreferencedFiles(std::vector<s
     if (!freshed && cache_.find(file) == cache_.end()) {
       mu_.Unlock();
       
-      CheckpointFileCache::RefreshCache();
+      RefreshCache();
       //std::cout << "current cache size:" << cache_.size() << std::endl;
       freshed = true;
       mu_.Lock();

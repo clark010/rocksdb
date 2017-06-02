@@ -41,6 +41,7 @@ private:
   Env* env_;
   
   port::Mutex mu_;
+  port::Mutex cv_mu_;
   
   port::CondVar cv_;
   
