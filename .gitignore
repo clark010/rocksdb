@@ -25,6 +25,7 @@ make_config.mk
 *.vcxproj.filters
 *.sln
 *.cmake
+cmake-build-debug
 CMakeCache.txt
 CMakeFiles/
 build/
