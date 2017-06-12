@@ -47,9 +47,11 @@ class CheckpointImpl : public Checkpoint {
   virtual Status CreateCheckpoint(const std::string& checkpoint_dir) override;
   virtual Status CreateInternalCheckpoint(const std::string& checkpoint_name) override;
   virtual Status RestoreInternalCheckpoint(const std::string& checkpoint_name) override;
+  virtual Status ReleaseInternalCheckpoint(const std::string& checkpoint_name) override;
 
  private:
   DB* db_;
+  port::Mutex mu_;
 };
 
 Status Checkpoint::Create(DB* db, Checkpoint** checkpoint_ptr) {
@@ -77,7 +79,9 @@ Status CheckpointImpl::RestoreInternalCheckpoint(const std::string& checkpoint_n
   if (db_->GetDBOptions().db_paths.size() > 1) {
     return Status::NotSupported("More than one db path is not supported in internal checkpoint");
   }
-
+  
+  MutexLock l(&mu_);
+  
   DbPath db_path = db_->GetDBOptions().db_paths.front();
   std::string checkpoint_dir = CheckpointDirectory(db_path.path) + "/" + checkpoint_name;
   // 1. check the checkpoint_name instance exists under checkpoint path
@@ -464,6 +468,33 @@ Status CheckpointImpl::CreateCheckpoint(const std::string& checkpoint_dir) {
       sequence_number);
 
   return s;
+}
+  
+Status CheckpointImpl::ReleaseInternalCheckpoint(const std::string& checkpoint_name) {
+  if (db_->GetDBOptions().db_paths.size() > 1) {
+    return Status::NotSupported("More than one db path is not supported in internal checkpoint");
+  }
+  
+  MutexLock l(&mu_);
+  
+  DbPath db_path = db_->GetDBOptions().db_paths.front();
+  std::string checkpoint_dir = CheckpointDirectory(db_path.path) + "/" + checkpoint_name;
+  // 1. check the checkpoint_name instance exists under checkpoint path
+  Status s = db_->GetEnv()->FileExists(checkpoint_dir);
+  if (!s.ok()) {
+    Log(db_->GetDBOptions().info_log, "Cannot find the checkpoint dir %s/%s",
+        CheckpointDirectory(db_path.path).c_str(), checkpoint_name.c_str());
+    return s;
+  }
+  
+  s = db_->GetEnv()->DeleteDir(CheckpointDirectory(db_path.path));
+  if (!s.ok()) {
+    Log(db_->GetDBOptions().info_log, "Cannot delete the checkpoint dir %s",
+        CheckpointDirectory(db_path.path).c_str());
+    return s;
+  }
+  
+  return Status::OK();
 }
 
 /*

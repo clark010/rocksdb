@@ -61,6 +61,11 @@ public class Checkpoint extends RocksObject {
       restoreInternalCheckpoint(nativeHandle_, checkpointPath);
   }
 
+  public void releaseInternalCheckpoint(final String checkpointPath)
+      throws RocksDBException {
+      releaseInternalCheckpoint(nativeHandle_, checkpointPath);
+    }
+
   @Override
   protected void disposeInternal() {
     disposeInternal(nativeHandle_);
@@ -83,4 +88,6 @@ public class Checkpoint extends RocksObject {
         throws RocksDBException;
   private native void restoreInternalCheckpoint(long handle, String checkpointPath)
         throws RocksDBException;
+  private native void releaseInternalCheckpoint(long handle, String checkpointPath)
+          throws RocksDBException;
 }
