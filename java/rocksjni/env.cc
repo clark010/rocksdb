@@ -9,6 +9,7 @@
 #include "include/org_rocksdb_Env.h"
 #include "include/org_rocksdb_RocksEnv.h"
 #include "include/org_rocksdb_RocksMemEnv.h"
+#include "include/org_rocssdb_RocksHdfsEnv.h"
 #include "rocksdb/env.h"
 
 /*
@@ -75,5 +76,26 @@ jlong Java_org_rocksdb_RocksMemEnv_createMemEnv(
  */
 void Java_org_rocksdb_RocksMemEnv_disposeInternal(
     JNIEnv* env, jobject jobj, jlong jhandle) {
+  delete reinterpret_cast<rocksdb::Env*>(jhandle);
+}
+
+/*
+ * Class:     org_rocksdb_RocksHdfsEnv
+ * Method:    createHdfsEnv
+ * Signature: ()J
+ */
+jlong Java_org_rocksdb_RocksHdfsEnv_createHdfsEnv
+  (JNIEnv *env, jclass jclazz) {
+  return reinterpret_cast<jlong>(rocksdb::NewHdfsEnv(
+    rocksdb::Env::Default()));
+}
+
+/*
+ * Class:     org_rocksdb_RocksHdfsEnv
+ * Method:    disposeInternal
+ * Signature: (J)V
+ */
+void Java_org_rocksdb_RocksHdfsEnv_disposeInternal
+(JNIEnv *env, jobject jobj, jlong jhandle) {
   delete reinterpret_cast<rocksdb::Env*>(jhandle);
 }

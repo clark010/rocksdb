@@ -101,8 +101,8 @@ class HdfsEnv : public Env {
                            std::shared_ptr<Logger>* result);
 
   virtual void Schedule(void (*function)(void* arg), void* arg,
-                        Priority pri = LOW, void* tag = nullptr, void (*unschedFunction)(void* arg) = 0) {
-    posixEnv->Schedule(function, arg, pri, tag, unschedFunction);
+                        Priority pri = LOW, void* tag = nullptr) {
+    posixEnv->Schedule(function, arg, pri, tag);
   }
 
   virtual int UnSchedule(void* tag, Priority pri) {
@@ -328,8 +328,7 @@ class HdfsEnv : public Env {
   }
 
   virtual void Schedule(void (*function)(void* arg), void* arg,
-                        Priority pri = LOW, void* tag = nullptr,
-                        void (*unschedFunction)(void* arg) = 0) override {}
+                        Priority pri = LOW, void* tag = nullptr) override {}
 
   virtual int UnSchedule(void* tag, Priority pri) override { return 0; }
 

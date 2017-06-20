@@ -597,9 +597,9 @@ Status HdfsEnv::NewLogger(const std::string& fname,
 }
 
 // The factory method for creating an HDFS Env
-Status NewHdfsEnv(Env** hdfs_env, const std::string& fsname) {
+Env* NewHdfsEnv(const std::string& fsname) {
   *hdfs_env = new HdfsEnv(fsname);
-  return Status::OK();
+  return hdfs_env;
 }
 
 }  // namespace rocksdb
@@ -616,8 +616,8 @@ namespace rocksdb {
    return Status::NotSupported("Not compiled with hdfs support");
  }
   
-  Status NewHdfsEnv(Env** hdfs_env, const std::string& fsname) {
-    return Status::NotSupported("Not compiled with hdfs support");
+  Env* NewHdfsEnv(const std::string& fsname) {
+    return nullptr;
   }
 }
 
