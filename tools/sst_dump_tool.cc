@@ -18,6 +18,7 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <hdfs/env_hdfs.h>
 
 #include "db/memtable.h"
 #include "db/write_batch_internal.h"
@@ -516,7 +517,8 @@ int SSTDumpTool::Run(int argc, char** argv) {
   }
 
   std::vector<std::string> filenames;
-  rocksdb::Env* env = rocksdb::Env::Default();
+  //rocksdb::Env* env = rocksdb::Env::Default();
+  rocksdb::Env* env = new HdfsEnv("");
   rocksdb::Status st = env->GetChildren(dir_or_file, &filenames);
   bool dir = true;
   if (!st.ok()) {
